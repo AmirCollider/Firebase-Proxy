@@ -318,33 +318,7 @@ if (!d1UserMatch) {
     }
   }
 
-  // ── Firebase path: iraknife-hit ─────────────────────────
-  const firebaseUrl = `${game.firebase.db}/${dbPath}.json?auth=${token}`
-
-  try {
-    const response = await fetch(firebaseUrl, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: body
-    })
-
-    const data = await response.text()
-
-    if (!response.ok) {
-      logError('Firebase PATCH failed', { requestId, gameId, path: dbPath, status: response.status })
-    } else {
-      logInfo('Database PATCH completed', { requestId, gameId, path: dbPath, status: response.status })
-    }
-
-    return new Response(data, {
-      status: response.status,
-      headers: { ...CORS_HEADERS, ...SECURITY.SECURE_HEADERS, 'Content-Type': 'application/json' }
-    })
-
-  } catch (error) {
-    logError('Database PATCH error', { requestId, gameId, path: dbPath, error: error.message })
-    return createJsonResponse({ error: 'database_error', message: error.message, requestId }, 500)
-  }
+  return createJsonResponse({ error: 'unsupported_game', message: 'This game does not support PATCH operations', requestId }, 400)
 }
 
 // ==========================================
@@ -361,7 +335,6 @@ const ROUTES = [
   { path: '/:gameId/ping', method: 'GET', handler: handlePingWithUI, dynamic: true },
   { path: '/database/patch/', method: 'PATCH', handler: handleDatabasePatch, prefix: true },
   { path: '/database/patch/', method: 'POST', handler: handleDatabasePatch, prefix: true },
-{ path: '/database/patch/', method: 'POST', handler: handleDatabasePatch, prefix: true },
   { path: '/:gameId/privacy', method: 'GET', handler: handlePrivacyPolicyWithGame, dynamic: true },
   { path: '/:gameId/terms', method: 'GET', handler: handleTermsWithGame, dynamic: true },
   { path: '/:gameId/leaderboard', method: 'GET', handler: handleLeaderboardUnified, dynamic: true },
@@ -513,49 +486,7 @@ async function handleValidateToken(url, request, gameId, requestId, GAMES, envVa
       }, 200)
     }
 
-    // ── Firebase path: iraknife-hit ───────────────────────
-    const verifyUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${game.firebase.apiKey}`
-    const verifyResponse = await fetch(verifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: token })
-    })
-
-    const verifyData = await verifyResponse.json()
-
-    if (verifyData.error || !verifyData.users?.length) {
-      logWarning('Token validation failed', { requestId, gameId, uid })
-      return createJsonResponse({
-        valid: false,
-        error: 'user_not_found',
-        message: 'User not found in Firebase Authentication',
-        requestId
-      }, 200)
-    }
-
-    const user = verifyData.users[0]
-
-    if (user.localId !== uid) {
-      return createJsonResponse({
-        valid: false,
-        error: 'uid_mismatch',
-        message: 'User ID does not match token',
-        requestId
-      }, 200)
-    }
-
-    logInfo('Token validated successfully', { requestId, gameId, uid })
-
-    return createJsonResponse({
-      valid: true,
-      user: {
-        uid: user.localId,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoUrl
-      },
-      requestId
-    }, 200)
+    return createJsonResponse({ valid: false, error: 'unsupported_game', message: 'Game not supported', requestId }, 400)
 
   } catch (error) {
     logError('Token validation error', { requestId, gameId, uid, error: error.message })
@@ -645,47 +576,7 @@ async function handleCheckUserExists(url, request, gameId, requestId, GAMES, env
       }, 200)
     }
 
-    // ── Firebase path: iraknife-hit ───────────────────────
-    const verifyUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${game.firebase.apiKey}`
-    const verifyResponse = await fetch(verifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: token })
-    })
-
-    const verifyData = await verifyResponse.json()
-
-    if (verifyData.error || !verifyData.users?.length) {
-      return createJsonResponse({
-        exists: false,
-        message: 'User not found in Firebase Authentication',
-        requestId
-      }, 200)
-    }
-
-    const user = verifyData.users[0]
-
-    if (user.localId !== uid) {
-      return createJsonResponse({
-        exists: false,
-        message: 'User ID mismatch',
-        requestId
-      }, 200)
-    }
-
-    logInfo('User exists in Firebase', { requestId, gameId, uid })
-
-    return createJsonResponse({
-      exists: true,
-      message: 'User exists in Firebase Authentication',
-      user: {
-        uid: user.localId,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoUrl
-      },
-      requestId
-    }, 200)
+    return createJsonResponse({ exists: false, error: 'unsupported_game', message: 'Game not supported', requestId }, 400)
 
   } catch (error) {
     logError('Check user error', { requestId, gameId, uid, error: error.message })
@@ -741,21 +632,7 @@ async function handleUserProfile(url, request, gameId, requestId, GAMES, envVars
       return createHtmlResponse(createUserProfilePage(userData, game, gameId))
     }
 
-    // ── Firebase path: iraknife-hit ───────────────────────
-    const userUrl = `${game.firebase.db}/games/${gameId}/users/${uid}.json`
-    const response = await fetch(userUrl)
-
-    if (!response.ok) {
-      return createHtmlResponse(createErrorPage('خطا در دریافت اطلاعات کاربر', game), 500)
-    }
-
-    const userData = await response.json()
-
-    if (!userData) {
-      return createHtmlResponse(createErrorPage('کاربر یافت نشد', game), 404)
-    }
-
-    return createHtmlResponse(createUserProfilePage(userData, game, gameId))
+    return createHtmlResponse(createErrorPage('Game not supported', game), 400)
 
   } catch (error) {
     logError('Profile fetch error', { requestId, gameId, uid, error: error.message })
@@ -1281,103 +1158,7 @@ async function handleFirebaseAuth(url, request, gameId, requestId, GAMES, envVar
     }
   }
 
-  // ── Firebase path: iraknife-hit ─────────────────────────
-  const finalApiKey = apiKey || game.firebase?.apiKey
-
-  if (!finalApiKey) {
-    return createJsonResponse({
-      error: 'missing_parameters',
-      message: 'apiKey is required for this game',
-      requestId
-    }, 400)
-  }
-
-  try {
-    const firebaseAuthUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${finalApiKey}`
-    const firebaseBody = {
-      postBody: `id_token=${idToken}&providerId=google.com`,
-      requestUri: url.origin,
-      returnSecureToken: true,
-      returnIdpCredential: true
-    }
-
-    const firebaseResponse = await fetch(firebaseAuthUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': `${game.name}-Proxy/${CONFIG.VERSION}`
-      },
-      body: JSON.stringify(firebaseBody)
-    })
-
-    const responseData = await firebaseResponse.json()
-
-    if (!firebaseResponse.ok || responseData.error) {
-      return createJsonResponse({
-        error: responseData.error?.code || 'firebase_auth_failed',
-        message: responseData.error?.message || 'Authentication failed',
-        requestId
-      }, firebaseResponse.status || 400)
-    }
-
-    const { idToken: firebaseIdToken, refreshToken, localId } = responseData
-
-    if (!firebaseIdToken) {
-      return createJsonResponse({
-        error: 'no_id_token',
-        message: 'Firebase did not return an ID token',
-        requestId
-      }, 500)
-    }
-
-    const verifyUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${finalApiKey}`
-    const verifyResponse = await fetch(verifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: firebaseIdToken })
-    })
-
-    const verifyData = await verifyResponse.json()
-
-    if (!verifyResponse.ok || verifyData.error) {
-      return createJsonResponse({
-        error: 'invalid_token',
-        message: 'Failed to verify ID token',
-        requestId
-      }, 401)
-    }
-
-    const userInfo = verifyData.users?.[0] || null
-
-    if (!userInfo) {
-      return createJsonResponse({
-        error: 'no_user_info',
-        message: 'Failed to retrieve user information',
-        requestId
-      }, 500)
-    }
-
-    return createJsonResponse({
-      success: true,
-      requestId,
-      game: gameId,
-      localId,
-      idToken: firebaseIdToken,
-      refreshToken: refreshToken || '',
-      email: userInfo.email || '',
-      displayName: userInfo.displayName || '',
-      photoUrl: userInfo.photoUrl || '',
-      expiresIn: responseData.expiresIn || 3600
-    }, 200)
-
-  } catch (error) {
-    logError('Firebase auth error', { requestId, gameId, error: error.message, stack: error.stack })
-    return createJsonResponse({
-      error: 'network_error',
-      message: error.message,
-      requestId
-    }, 500)
-  }
+  return createJsonResponse({ error: 'unsupported_game', message: 'This game does not support Firebase authentication', requestId }, 400)
 }
 
 
@@ -1453,51 +1234,7 @@ async function handleRefreshToken(url, request, gameId, requestId, GAMES, envVar
       }, 200)
     }
 
-    // ── Firebase path: iraknife-hit ───────────────────────
-    logInfo('Refreshing Firebase token via proxy', { requestId, gameId })
-
-    const tokenUrl = `https://securetoken.googleapis.com/v1/token?key=${game.firebase.apiKey}`
-    const tokenResponse = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': `${game.name}-Proxy/${CONFIG.VERSION}`
-      },
-      body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: refreshToken })
-    })
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text()
-      logError('Token refresh failed', { requestId, gameId, status: tokenResponse.status, error: errorText })
-      return createJsonResponse({
-        success: false,
-        error: 'refresh_failed',
-        message: 'Failed to refresh token',
-        details: errorText,
-        requestId
-      }, tokenResponse.status)
-    }
-
-    const tokenData = await tokenResponse.json()
-
-    if (!tokenData.id_token) {
-      return createJsonResponse({
-        success: false,
-        error: 'no_token',
-        message: 'No ID token received',
-        requestId
-      }, 500)
-    }
-
-    logInfo('Token refreshed successfully via proxy', { requestId, gameId })
-
-    return createJsonResponse({
-      success: true,
-      id_token: tokenData.id_token,
-      refresh_token: tokenData.refresh_token || refreshToken,
-      expires_in: tokenData.expires_in || 3600,
-      requestId
-    }, 200)
+    return createJsonResponse({ success: false, error: 'unsupported_game', message: 'Game not supported', requestId }, 400)
 
   } catch (error) {
     logError('Token refresh error', { requestId, gameId, error: error.message })
@@ -1623,26 +1360,7 @@ async function handleDatabaseGet(url, request, gameId, requestId, GAMES, envVars
       }, 400)
     }
 
-    // ── Firebase path: iraknife-hit ───────────────────────
-    const firebaseUrl = token
-      ? `${game.firebase.db}/${dbPath}.json?auth=${token}`
-      : `${game.firebase.db}/${dbPath}.json`
-
-    const response = await fetch(firebaseUrl)
-    const data = await response.text()
-
-    if (!response.ok) {
-      logError('Firebase GET failed', { requestId, gameId, path: dbPath, status: response.status })
-    }
-
-    return new Response(data, {
-      status: response.status,
-      headers: {
-        ...CORS_HEADERS,
-        ...SECURITY.SECURE_HEADERS,
-        'Content-Type': 'application/json'
-      }
-    })
+    return createJsonResponse({ error: 'unsupported_game', message: 'This game does not support GET operations', requestId }, 400)
 
   } catch (error) {
     logError('Database GET error', { requestId, gameId, path: dbPath, error: error.message })
@@ -1828,114 +1546,7 @@ const body = await request.text()
     }
   }
 
-  // ── Firebase path: iraknife-hit ─────────────────────────
-  const highScoreMatch = dbPath.match(/^games\/([^/]+)\/users\/([^/]+)\/highScore$/)
-
-  if (highScoreMatch) {
-    const [, gameIdFromPath, uid] = highScoreMatch
-    const newScore = parseInt(body)
-
-    if (isNaN(newScore) || newScore < 0) {
-      return createJsonResponse({ error: 'invalid_score', message: 'Score must be a non-negative number', requestId }, 400)
-    }
-
-    try {
-      const currentScoreUrl = `${game.firebase.db}/games/${gameIdFromPath}/users/${uid}/highScore.json?auth=${token}`
-      const currentScoreResponse = await fetch(currentScoreUrl)
-      let currentHighScore = 0
-      if (currentScoreResponse.ok) {
-        const currentData = await currentScoreResponse.json()
-        if (currentData !== null && typeof currentData === 'number') currentHighScore = currentData
-      }
-
-      if (newScore <= currentHighScore) {
-        return createJsonResponse({
-          success: false,
-          message: 'Score not higher than current high score',
-          currentHighScore,
-          submittedScore: newScore,
-          requestId
-        }, 200)
-      }
-
-      await fetch(`${game.firebase.db}/games/${gameIdFromPath}/users/${uid}/highScore.json?auth=${token}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: body
-      })
-
-      const userDataResponse = await fetch(`${game.firebase.db}/games/${gameIdFromPath}/users/${uid}.json?auth=${token}`)
-      let displayName = 'Unknown User'
-      let photoURL = ''
-      let selectedKnife = 'Knife_01'
-
-      if (userDataResponse.ok) {
-        const userData = await userDataResponse.json()
-        if (userData && typeof userData === 'object') {
-          displayName = userData.displayName || userData.username || 'Unknown User'
-          photoURL = userData.photoURL || ''
-          selectedKnife = (userData.selectedKnife && userData.selectedKnife.trim() !== '') ? userData.selectedKnife : 'Knife_01'
-        }
-      }
-
-      const leaderboardEntry = { displayName, highScore: newScore, photoURL, selectedKnife }
-      const leaderboardResponse = await fetch(`${game.firebase.db}/games/${gameIdFromPath}/leaderboard/${uid}.json?auth=${token}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(leaderboardEntry)
-      })
-
-      return createJsonResponse({
-        success: true,
-        message: 'High score updated successfully',
-        previousHighScore: currentHighScore,
-        newHighScore: newScore,
-        improvement: newScore - currentHighScore,
-        leaderboard: { updated: leaderboardResponse.ok },
-        requestId
-      }, 200)
-
-    } catch (error) {
-      logError('❌ Firebase high score update error', { requestId, gameId, uid, error: error.message })
-      return createJsonResponse({ error: 'update_failed', message: error.message, requestId }, 500)
-    }
-  }
-
-  const leaderboardMatch = dbPath.match(/^games\/([^/]+)\/leaderboard\/([^/]+)$/)
-  if (leaderboardMatch) {
-    try {
-      const firebaseUrl = `${game.firebase.db}/${dbPath}.json?auth=${token}`
-      const response = await fetch(firebaseUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: body
-      })
-      const data = await response.text()
-      return new Response(data, {
-        status: response.status,
-        headers: { ...CORS_HEADERS, ...SECURITY.SECURE_HEADERS, 'Content-Type': 'application/json' }
-      })
-    } catch (error) {
-      return createJsonResponse({ error: 'save_failed', message: error.message, requestId }, 500)
-    }
-  }
-
-  try {
-    const firebaseUrl = `${game.firebase.db}/${dbPath}.json?auth=${token}`
-    const response = await fetch(firebaseUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: body
-    })
-    const data = await response.text()
-    return new Response(data, {
-      status: response.status,
-      headers: { ...CORS_HEADERS, ...SECURITY.SECURE_HEADERS, 'Content-Type': 'application/json' }
-    })
-  } catch (error) {
-    logError('Database SET error', { requestId, gameId, path: dbPath, error: error.message })
-    return createJsonResponse({ error: 'database_error', message: error.message, requestId }, 500)
-  }
+  return createJsonResponse({ error: 'unsupported_game', message: 'This game does not support SET operations', requestId }, 400)
 }
 
 function createAuthRedirectPage(googleAuthUrl, game, baseUrl) {
@@ -2171,7 +1782,7 @@ function createDesktopSuccessPage(code, game, baseUrl) {
     <p style="margin-top: 30px; opacity: 0.9; font-size: 0.9em;">این پنجره را می‌توانید ببندید</p>
   </div>
   <script>
-    const authCode = '${code}';
+    const authCode = ${JSON.stringify(code)};
     
     function copyCodeManually() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2371,8 +1982,8 @@ function createAndroidSuccessPage(androidScheme, game, baseUrl) {
   </div>
 
   <script>
-    const deepLink = '${deepLinkScheme}';
-    const code = '${code}';
+    const deepLink = ${JSON.stringify(deepLinkScheme)};
+    const code = ${JSON.stringify(code)};
     
     console.log('🔗 Android Success Page Loaded');
     console.log('   Deep Link:', deepLink);
@@ -2513,7 +2124,7 @@ function createPCSuccessPage(code, localRedirectUri, game) {
     <p style="margin-top:20px; opacity:0.8; font-size:0.9em;">این پنجره را می‌توانید ببندید</p>
   </div>
   <script>
-    fetch('${callbackUrl}')
+    fetch(${JSON.stringify(callbackUrl)})
       .then(() => {
         document.getElementById('status').textContent = 'بازی آماده است! این پنجره را ببندید.'
       })
