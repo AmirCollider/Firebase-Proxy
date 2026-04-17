@@ -40,13 +40,7 @@ export function validateEnvironmentVariables(envVars) {
   const required = [
     'NEON_KATANA_GOOGLE_CLIENT_ID_WEB',
     'NEON_KATANA_GOOGLE_CLIENT_SECRET',
-    'NEON_KATANA_DEEPLINK_SCHEME',
-    'IRAKNIFE_HIT_FIREBASE_DB_URL',
-    'IRAKNIFE_HIT_FIREBASE_API_KEY',
-    'IRAKNIFE_HIT_GOOGLE_CLIENT_ID_ANDROID',
-    'IRAKNIFE_HIT_GOOGLE_CLIENT_ID_WEB',
-    'IRAKNIFE_HIT_GOOGLE_CLIENT_SECRET',
-    'IRAKNIFE_HIT_DEEPLINK_SCHEME'
+    'NEON_KATANA_DEEPLINK_SCHEME'
   ]
 
   const missing = required.filter(key => !envVars[key])
