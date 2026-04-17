@@ -40,44 +40,21 @@ export const CORS_HEADERS = {
 export function getGamesConfig(envVars) {
   return {
     'neon-katana': {
-  name: 'Neon Katana',
-  icon: '⚔️🍉',
-  color: '#FF5722',
-  description: 'بازی شمشیر نئونی',
-  logo: 'https://drive.google.com/thumbnail?id=1X198sJb0HIMm_1ENKeX9CWuwWsHlnshD&sz=w200',
-  myketUrl: 'https://myket.ir/app/com.AmirColliderGames.NeonKatana',
-  d1Binding: 'NEON_KATANA_DB',
-  package: 'com.AmirColliderGames.NeonKatana',
-  oauth: {
-    android: envVars.NEON_KATANA_GOOGLE_CLIENT_ID_ANDROID,
-    web: envVars.NEON_KATANA_GOOGLE_CLIENT_ID_WEB,
-    secret: envVars.NEON_KATANA_GOOGLE_CLIENT_SECRET
-  },
-  deepLink: {
-    scheme: 'com.amircollidergames.neonkatana',
-    host: 'oauth'
-  }
-},
-    'iraknife-hit': {
-      name: 'IraKnife Hit',
-      icon: '🔪🍎',
-      color: '#E53935',
-      description: 'پرتاپ چاقوی ایرانی',
-      logo: 'https://drive.google.com/thumbnail?id=1fku8vhkYUpC0a4wjOdLfZ9o0o0m0OhHA&sz=w200',
-      myketUrl: 'https://myket.ir/app/com.AmirColliderGames.IraKnifeHit',
-      firebase: {
-        db: envVars.IRAKNIFE_HIT_FIREBASE_DB_URL,
-        apiKey: envVars.IRAKNIFE_HIT_FIREBASE_API_KEY
-      },
-      package: 'com.AmirColliderGames.IraKnifeHit',
+      name: 'Neon Katana',
+      icon: '⚔️🍉',
+      color: '#FF5722',
+      description: 'بازی شمشیر نئونی',
+      logo: 'https://drive.google.com/thumbnail?id=1X198sJb0HIMm_1ENKeX9CWuwWsHlnshD&sz=w200',
+      myketUrl: 'https://myket.ir/app/com.AmirColliderGames.NeonKatana',
+      d1Binding: 'NEON_KATANA_DB',
+      package: 'com.AmirColliderGames.NeonKatana',
       oauth: {
-        android: envVars.IRAKNIFE_HIT_GOOGLE_CLIENT_ID_ANDROID,
-        web: envVars.IRAKNIFE_HIT_GOOGLE_CLIENT_ID_WEB,
-        secret: envVars.IRAKNIFE_HIT_GOOGLE_CLIENT_SECRET,
-        unity: ''
+        android: envVars.NEON_KATANA_GOOGLE_CLIENT_ID_ANDROID,
+        web: envVars.NEON_KATANA_GOOGLE_CLIENT_ID_WEB,
+        secret: envVars.NEON_KATANA_GOOGLE_CLIENT_SECRET
       },
       deepLink: {
-        scheme: 'com.amircollidergames.iraknifehit',
+        scheme: 'com.amircollidergames.neonkatana',
         host: 'oauth'
       }
     }
