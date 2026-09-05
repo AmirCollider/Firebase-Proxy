@@ -57,11 +57,18 @@ export function panelPassword(env, name) {
   // The mailbox has its own secret and DOES NOT fall back to
   // another panel's. TheGod falls back so a half-configured
   // deployment does not lock its operator out of the tool that
-  // fixes it - but /mail is not that tool, and the thing behind
-  // it is correspondence plus the ability to send mail as the
-  // domain. An unset MailPassword must mean "nobody gets in",
-  // not "whoever knows the test panel's password gets in".
-  if (name === 'mail') return String(env.MailPassword || '')
+  // fixes it - but the mailbox is not that tool, and the thing
+  // behind it is correspondence plus the ability to send mail as
+  // the domain. An unset secret must mean "nobody gets in", not
+  // "whoever knows the test panel's password gets in".
+  //
+  // The variable is TheEmailPassword because that is the name it
+  // was actually created under in the Worker's Runtime variables
+  // and secrets. MailPassword is accepted as a second name for
+  // one reason only: a deployment that set the other one should
+  // not be locked out by a rename. Neither falls back to another
+  // panel.
+  if (name === 'mail') return String(env.TheEmailPassword || env.MailPassword || '')
 
   return String(env.TestSitePassword || '')
 }

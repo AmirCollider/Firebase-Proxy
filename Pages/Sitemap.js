@@ -46,10 +46,11 @@ const DISALLOW = [
   '/thegod',
   '/testsite',
 
-  // The mailbox. Its pages are noindex too, but a crawler has to
-  // FETCH a page to read that - and the one behind this path is a
-  // password prompt guarding correspondence.
-  '/mail',
+  // The mailbox, and the contact form's POST endpoint. Both are
+  // noindex too, but a crawler has to FETCH a page to read that -
+  // and one of these is a password prompt guarding correspondence.
+  // Must match CONFIG.MAIL.PATH.
+  CONFIG.MAIL.PATH,
 
   '/checkout',
   '/order',
@@ -64,7 +65,12 @@ const DISALLOW = [
   // trailing slash is what draws that line: '/donate' is a page
   // with something to say and belongs in the index, '/donate/thanks'
   // is a receipt.
-  '/donate/'
+  '/donate/',
+
+  // Same line, drawn the same way: '/contact' is a page and is in
+  // the sitemap; '/contact/send' is a POST endpoint and a crawler
+  // fetching it learns nothing and spends a rate-limit slot.
+  '/contact/'
 ]
 
 
@@ -128,10 +134,17 @@ export function indexablePaths(games = {}, options = {}) {
   const paths = [
     { loc: '/', priority: '1.0', changefreq: 'weekly', image: CONFIG.AMIR_LOGO, title: 'AmirCollider' },
     { loc: '/about', priority: '0.9', changefreq: 'monthly', image: CONFIG.AMIR_LOGO, title: 'AmirCollider' },
+
+    // /cv is an alias of this and is deliberately NOT listed: two
+    // sitemap entries rendering identical bytes is the duplicate
+    // this file exists to avoid. /resume is the canonical one, and
+    // the page says so.
+    { loc: '/resume', priority: '0.8', changefreq: 'monthly' },
     { loc: '/games', priority: '0.9', changefreq: 'weekly' },
     { loc: '/tools', priority: '0.9', changefreq: 'weekly' },
     { loc: '/unity-docsnap', priority: '0.9', changefreq: 'weekly', videos: true },
     { loc: '/unity-directtmp', priority: '0.9', changefreq: 'weekly' },
+    { loc: '/contact', priority: '0.7', changefreq: 'monthly' },
     { loc: '/donate', priority: '0.6', changefreq: 'monthly' },
     { loc: '/release-notes', priority: '0.6', changefreq: 'weekly' },
     { loc: '/privacy', priority: '0.4', changefreq: 'yearly' },

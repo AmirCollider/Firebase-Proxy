@@ -19,6 +19,13 @@
 //   system      a page of mail_outbox (licence deliveries etc), read-only
 //   systemGet   one outbox row, with its rendered body
 //   status      what is configured, what is missing, and the counts
+//   folders     the folder list, with a message count each
+//   folderSave  create or rename one
+//   folderDrop  delete one (its messages go back to the inbox)
+//   move        file one message into a folder, or out of all of them
+//   blocks      the blocklist
+//   blockAdd    refuse an address or a whole domain
+//   blockDrop   stop refusing one
 //
 // Everything that writes is a POST body field; nothing is taken
 // from the query string, so no action can be triggered by a link.
@@ -30,9 +37,11 @@ import { logInfo, logWarning } from '../Core/Logging.js'
 import { sendNow, mailSendable } from '../Commerce/Mailer.js'
 import { isMailAuthenticated } from '../Pages/MailPanel.js'
 import {
-  db, mailTableReady, listMessages, getMessage, storeMessage,
+  db, mailTableReady, foldersReady, listMessages, getMessage, storeMessage,
   markRead, markAllRead, setStarred, setArchived, deleteMessage,
-  counts, listSystemMail, getSystemMail
+  counts, listSystemMail, getSystemMail,
+  listFolders, createFolder, renameFolder, deleteFolder, moveToFolder,
+  listBlocks, addBlock, removeBlock
 } from '../Mail/Store.js'
 
 
@@ -46,8 +55,21 @@ import {
 // ==========================================
 const ACTIONS = [
   'status', 'list', 'get', 'send', 'read', 'readAll',
-  'star', 'archive', 'delete', 'system', 'systemGet'
+  'star', 'archive', 'delete', 'system', 'systemGet',
+  'folders', 'folderSave', 'folderDrop', 'move',
+  'blocks', 'blockAdd', 'blockDrop'
 ]
+
+
+// ==========================================
+// Folder colours.
+//
+// A short list rather than a free-form colour, because the value
+// reaches a style attribute in the panel. Validating against names
+// here means the renderer never has to sanitise a colour, which is
+// the kind of check that gets forgotten once.
+// ==========================================
+const FOLDER_COLORS = ['blue', 'green', 'amber', 'rose', 'violet', 'slate']
 
 
 // ==========================================
@@ -177,6 +199,11 @@ export async function handleMailApi(url, request, gameId, requestId, GAMES, env)
           address: CONFIG.MAIL.ADDRESS,
           name: CONFIG.MAIL.NAME,
           tableReady: ready,
+
+          // 0013 and 0014 separately: a deployment can have the
+          // mailbox and not the folders, and the panel says which
+          // rather than failing whole.
+          foldersReady: ready ? await foldersReady(database) : false,
 
           // Which provider will carry a send, without ever saying
           // what the key is. CLAUDE.md rule 8.
@@ -378,6 +405,94 @@ export async function handleMailApi(url, request, gameId, requestId, GAMES, env)
         return createJsonResponse({
           ok: await deleteMessage(database, body.id),
           counts: await counts(database),
+          requestId
+        })
+
+      // ==========================================
+      // Folders
+      // ==========================================
+      case 'folders':
+        return createJsonResponse({
+          ok: true,
+          folders: await listFolders(database),
+          blocks: await listBlocks(database),
+          requestId
+        })
+
+      case 'folderSave': {
+        const name = String(body.name || '').trim()
+        if (!name) {
+          return createJsonResponse({ error: 'no_name', message: 'A folder needs a name.', requestId }, 400)
+        }
+
+        const color = FOLDER_COLORS.includes(body.color) ? body.color : 'slate'
+
+        // One action for create and rename, keyed on whether an id
+        // came with it. The panel's form is the same either way, so
+        // two endpoints would be two ways to reach one screen.
+        const saved = body.id
+          ? await renameFolder(database, body.id, { name, color })
+          : await createFolder(database, { name, color })
+
+        return createJsonResponse({
+          ok: Boolean(saved),
+          id: body.id || saved,
+          folders: await listFolders(database),
+          requestId
+        })
+      }
+
+      case 'folderDrop':
+        return createJsonResponse({
+          ok: await deleteFolder(database, body.id),
+          folders: await listFolders(database),
+          counts: await counts(database),
+          requestId
+        })
+
+      case 'move':
+        return createJsonResponse({
+          ok: await moveToFolder(database, body.id, body.folderId || null),
+          folders: await listFolders(database),
+          requestId
+        })
+
+      // ==========================================
+      // The blocklist
+      // ==========================================
+      case 'blocks':
+        return createJsonResponse({ ok: true, blocks: await listBlocks(database), requestId })
+
+      case 'blockAdd': {
+        const value = String(body.value || '').trim()
+        if (!value) {
+          return createJsonResponse({ error: 'no_value', message: 'Nothing to block.', requestId }, 400)
+        }
+
+        // Blocking the mailbox's own address would silently drop
+        // every reply the operator sends to themselves and every
+        // test message, and the symptom - mail vanishing with no
+        // error - is close to undiagnosable. Refused with a reason.
+        if (value.toLowerCase() === CONFIG.MAIL.ADDRESS.toLowerCase()) {
+          return createJsonResponse({
+            error: 'cannot_block_self',
+            message: 'That is this mailbox.',
+            requestId
+          }, 400)
+        }
+
+        const added = await addBlock(database, { kind: body.kind, value, note: body.note })
+        return createJsonResponse({
+          ok: Boolean(added),
+          blocks: await listBlocks(database),
+          requestId
+        })
+      }
+
+      case 'blockDrop':
+        return createJsonResponse({
+          ok: await removeBlock(database, body.id),
+          blocks: await listBlocks(database),
           requestId
         })
 

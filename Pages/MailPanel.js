@@ -1,6 +1,6 @@
 // ==========================================
 // Pages/MailPanel.js
-// /mail - the operator's mailbox.
+// The operator's mailbox, at CONFIG.MAIL.PATH (/domail2).
 //
 // A third panel beside /thegod and /testsite, built the same way:
 // its own path-scoped cookie, its own secret, one page of server-
@@ -19,14 +19,18 @@
 // at what the checkout has been sending.
 //
 // Public entries (wired in Worker.js ROUTES):
-//   handleMail            GET  /mail
-//   handleMailLogin       GET  /mail/login
-//   handleMailLoginPost   POST /mail/login
-//   handleMailLogout      POST /mail/logout
+//   handleMail            GET  {PATH}
+//   handleMailLogin       GET  {PATH}/login
+//   handleMailLoginPost   POST {PATH}/login
+//   handleMailLogout      POST {PATH}/logout
 //   isMailAuthenticated   read by Api/MailApi.js
 //
-// The secret is MailPassword, set with:
-//   npx wrangler secret put MailPassword
+// The path is CONFIG.MAIL.PATH and is read from there rather than
+// written down here, so moving the panel is one line in Config.js
+// plus the four places that cannot import it (each is commented).
+//
+// The secret is TheEmailPassword, set with:
+//   npx wrangler secret put TheEmailPassword
 // It does NOT fall back to another panel's password - see the
 // note in Core/PanelSession.js for why this one must not.
 // ==========================================
@@ -46,7 +50,12 @@ import { dirFor, matchRequestLang, themeFromCookie, langCookieHeader } from '../
 
 
 const AUTH_COOKIE = 'amir_mail_auth'
-const COOKIE_PATH = '/mail'
+
+// Both read from Config so the panel's address is stated once.
+// COOKIE_PATH matters as much as the route does: the cookie is
+// scoped to it, so a panel that moved without its cookie moving
+// would sign nobody in and give no reason why.
+const COOKIE_PATH = CONFIG.MAIL.PATH
 const PANEL_NAME = 'mail'
 const DEFAULT_LANG = 'fa'
 
@@ -71,7 +80,7 @@ const I18N = {
     signIn: 'ورود',
     wrong: 'رمز عبور درست نیست',
     blocked: 'تلاش زیاد. چند دقیقه صبر کن',
-    notSet: 'رمز این پنل هنوز تعریف نشده. یک secret به نام MailPassword روی ورکر بگذار.',
+    notSet: 'رمز این پنل هنوز تعریف نشده. یک secret به نام TheEmailPassword روی ورکر بگذار.',
     foot: 'این صفحه فهرست نمی‌شود و از هیچ‌جای سایت لینک ندارد.',
 
     title: 'صندوق ایمیل',
@@ -82,6 +91,31 @@ const I18N = {
     starred: 'ستاره‌دار',
     archived: 'بایگانی',
     system: 'ایمیل‌های سیستم',
+    contactBox: 'فرم تماس',
+    folders: 'پوشه‌ها',
+    newFolder: 'پوشه‌ی جدید',
+    folderName: 'نام پوشه',
+    folderColor: 'رنگ',
+    save: 'ذخیره',
+    rename: 'تغییر نام',
+    dropFolder: 'حذف پوشه',
+    confirmFolder: 'پوشه حذف شود؟ پیام‌هایش پاک نمی‌شوند و به صندوق برمی‌گردند.',
+    moveTo: 'انتقال به پوشه',
+    noFolder: 'بدون پوشه',
+    blocks: 'مسدودها',
+    blockAdd: 'مسدود کردن',
+    blockAddr: 'یک آدرس',
+    blockDomain: 'یک دامنه',
+    blockValue: 'آدرس یا دامنه',
+    blockNote: 'یادداشت (اختیاری)',
+    blockDrop: 'رفع مسدودی',
+    blockHits: 'جلوگیری‌شده',
+    blockNone: 'هنوز چیزی مسدود نشده.',
+    blockThis: 'مسدود کردن فرستنده',
+    blockedOk: 'مسدود شد.',
+    fromContact: 'از فرم تماس',
+    spamScore: 'امتیاز اسپم',
+    needsFolders: 'برای پوشه‌ها و مسدودها این فایل را اجرا کن:',
     systemHint: 'چیزهایی که خود سایت فرستاده — کلید لایسنس، رسید، هشدار سفارش.',
     refresh: 'بروزرسانی',
     search: 'جست‌وجو',
@@ -142,7 +176,7 @@ const I18N = {
     signIn: 'Sign in',
     wrong: 'That password is not right',
     blocked: 'Too many attempts. Wait a few minutes',
-    notSet: 'This panel has no password yet. Set a secret named MailPassword on the Worker.',
+    notSet: 'This panel has no password yet. Set a secret named TheEmailPassword on the Worker.',
     foot: 'This page is not indexed and is linked from nowhere on the site.',
 
     title: 'Mailbox',
@@ -153,6 +187,31 @@ const I18N = {
     starred: 'Starred',
     archived: 'Archived',
     system: 'System mail',
+    contactBox: 'Contact form',
+    folders: 'Folders',
+    newFolder: 'New folder',
+    folderName: 'Folder name',
+    folderColor: 'Colour',
+    save: 'Save',
+    rename: 'Rename',
+    dropFolder: 'Delete folder',
+    confirmFolder: 'Delete this folder? Its messages are not deleted — they go back to the inbox.',
+    moveTo: 'Move to folder',
+    noFolder: 'No folder',
+    blocks: 'Blocked',
+    blockAdd: 'Block',
+    blockAddr: 'An address',
+    blockDomain: 'A domain',
+    blockValue: 'Address or domain',
+    blockNote: 'Note (optional)',
+    blockDrop: 'Unblock',
+    blockHits: 'stopped',
+    blockNone: 'Nothing blocked yet.',
+    blockThis: 'Block this sender',
+    blockedOk: 'Blocked.',
+    fromContact: 'from the contact form',
+    spamScore: 'spam score',
+    needsFolders: 'For folders and blocking, run this file:',
     systemHint: 'What the site itself sent — licence keys, receipts, order alerts.',
     refresh: 'Refresh',
     search: 'Search',
@@ -213,7 +272,7 @@ const I18N = {
     signIn: 'サインイン',
     wrong: 'パスワードが違います',
     blocked: '試行回数が多すぎます。数分お待ちください',
-    notSet: 'このパネルにはまだパスワードがありません。Worker に MailPassword という名前のシークレットを設定してください。',
+    notSet: 'このパネルにはまだパスワードがありません。Worker に TheEmailPassword という名前のシークレットを設定してください。',
     foot: 'このページはインデックスされず、サイトのどこからもリンクされていません。',
 
     title: 'メールボックス',
@@ -224,6 +283,31 @@ const I18N = {
     starred: 'スター付き',
     archived: 'アーカイブ',
     system: 'システムメール',
+    contactBox: 'お問い合わせ',
+    folders: 'フォルダ',
+    newFolder: '新しいフォルダ',
+    folderName: 'フォルダ名',
+    folderColor: '色',
+    save: '保存',
+    rename: '名前を変更',
+    dropFolder: 'フォルダを削除',
+    confirmFolder: 'このフォルダを削除しますか? メッセージは削除されず、受信トレイに戻ります。',
+    moveTo: 'フォルダへ移動',
+    noFolder: 'フォルダなし',
+    blocks: 'ブロック',
+    blockAdd: 'ブロックする',
+    blockAddr: 'アドレス',
+    blockDomain: 'ドメイン',
+    blockValue: 'アドレスまたはドメイン',
+    blockNote: 'メモ (任意)',
+    blockDrop: 'ブロック解除',
+    blockHits: '件を拒否',
+    blockNone: 'まだ何もブロックしていません。',
+    blockThis: 'この送信者をブロック',
+    blockedOk: 'ブロックしました。',
+    fromContact: 'お問い合わせフォームから',
+    spamScore: 'スパムスコア',
+    needsFolders: 'フォルダとブロック機能には、このファイルを実行してください:',
     systemHint: 'サイトが送信したもの — ライセンスキー、領収書、注文の警告。',
     refresh: '更新',
     search: '検索',
@@ -301,11 +385,11 @@ function langFor(url, request) {
 
 
 // ==========================================
-// Handler: GET /mail
+// Handler: GET the panel
 // ==========================================
 export async function handleMail(url, request, gameId, requestId, GAMES, env) {
   if (!(await isMailAuthenticated(request, env))) {
-    return Response.redirect(`${url.origin}/mail/login`, 302)
+    return Response.redirect(`${url.origin}${COOKIE_PATH}/login`, 302)
   }
 
   const lang = langFor(url, request)
@@ -315,11 +399,11 @@ export async function handleMail(url, request, gameId, requestId, GAMES, env) {
 
 
 // ==========================================
-// Handler: GET /mail/login
+// Handler: GET the login page
 // ==========================================
 export async function handleMailLogin(url, request, gameId, requestId, GAMES, env) {
   if (await isMailAuthenticated(request, env)) {
-    return Response.redirect(`${url.origin}/mail`, 302)
+    return Response.redirect(`${url.origin}${COOKIE_PATH}`, 302)
   }
 
   const lang = langFor(url, request)
@@ -332,7 +416,7 @@ export async function handleMailLogin(url, request, gameId, requestId, GAMES, en
 
 
 // ==========================================
-// Handler: POST /mail/login
+// Handler: POST the login form
 // ==========================================
 export async function handleMailLoginPost(url, request, gameId, requestId, GAMES, env) {
   const secret = mailPassword(env)
@@ -341,7 +425,7 @@ export async function handleMailLoginPost(url, request, gameId, requestId, GAMES
 
   if (await isRateLimited(database, PANEL_NAME, ip)) {
     logWarning('Mail panel login rate limited', { requestId })
-    return Response.redirect(`${url.origin}/mail/login?error=2`, 302)
+    return Response.redirect(`${url.origin}${COOKIE_PATH}/login?error=2`, 302)
   }
 
   let password = ''
@@ -349,17 +433,17 @@ export async function handleMailLoginPost(url, request, gameId, requestId, GAMES
     password = new URLSearchParams(await request.text()).get('password') || ''
   } catch {
     await recordAttempt(database, PANEL_NAME, ip)
-    return Response.redirect(`${url.origin}/mail/login?error=1`, 302)
+    return Response.redirect(`${url.origin}${COOKIE_PATH}/login?error=1`, 302)
   }
 
   // An unset secret refuses everything, including the empty
   // string. timingSafeEqual('', '') is true, so without this a
-  // deployment that has not set MailPassword would let anybody in
+  // deployment that has not set TheEmailPassword would let anybody in
   // by submitting a blank form.
   if (!secret || !timingSafeEqual(password, secret)) {
     await recordAttempt(database, PANEL_NAME, ip)
     logWarning('Mail panel login refused', { requestId })
-    return Response.redirect(`${url.origin}/mail/login?error=1`, 302)
+    return Response.redirect(`${url.origin}${COOKIE_PATH}/login?error=1`, 302)
   }
 
   await clearAttempts(database, PANEL_NAME, ip)
@@ -367,7 +451,7 @@ export async function handleMailLoginPost(url, request, gameId, requestId, GAMES
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${url.origin}/mail`,
+      Location: `${url.origin}${COOKIE_PATH}`,
       'Set-Cookie': await issuePanelCookie(AUTH_COOKIE, COOKIE_PATH, secret, CONFIG.MAIL.SESSION_MAX_AGE_MS)
     }
   })
@@ -375,13 +459,13 @@ export async function handleMailLoginPost(url, request, gameId, requestId, GAMES
 
 
 // ==========================================
-// Handler: POST /mail/logout
+// Handler: POST sign out
 // ==========================================
 export async function handleMailLogout(url, request, gameId, requestId, GAMES, env) {
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${url.origin}/mail/login`,
+      Location: `${url.origin}${COOKIE_PATH}/login`,
       'Set-Cookie': clearPanelCookie(AUTH_COOKIE, COOKIE_PATH)
     }
   })
@@ -593,6 +677,56 @@ function css(accentRgb) {
   .rail a[aria-current="true"] .count { background: var(--accent); color: #fff; }
   .rail .hint { font-size: .72rem; color: var(--muted); padding: 6px 12px 0; line-height: 1.5; }
 
+  /* The folder strip. A dot per folder in its colour, so the rail
+     reads as a list of places rather than a list of words. */
+  .rail .sep {
+    font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); padding: 14px 12px 6px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; display: inline-block; }
+  .dot.blue { background: #3d7bd9; }
+  .dot.green { background: #1a8a5a; }
+  .dot.amber { background: #b57611; }
+  .dot.rose { background: #c8324b; }
+  .dot.violet { background: #7a4ed9; }
+  .dot.slate { background: #5d6880; }
+  .rail a .fname { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .rail a .fname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* The manage screen: folders and the blocklist, side by side on
+     a desktop and stacked on anything narrower. */
+  .manage { padding: clamp(14px, 3vw, 24px); overflow-y: auto; flex: 1; }
+  .manage-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  }
+  .mcard {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; min-width: 0;
+  }
+  .mcard h3 { font-size: .95rem; font-weight: 800; margin-bottom: 12px; }
+  .mrow {
+    display: flex; align-items: center; gap: 10px; padding: 9px 0;
+    border-bottom: 1px solid var(--border); min-width: 0;
+  }
+  .mrow:last-child { border-bottom: 0; }
+  .mrow .grow { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font-size: .86rem; }
+  .mrow .meta { font-size: .72rem; color: var(--muted); }
+  .mform { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .mform input, .mform select { flex: 1 1 min(100%, 150px); min-width: 0; }
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .swatches button {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; padding: 0; min-height: 26px; min-width: 26px;
+  }
+  .swatches button[aria-pressed="true"] { border-color: var(--text); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .68rem; font-weight: 700; padding: 1px 8px; border-radius: 999px;
+    background: var(--surface-2); color: var(--muted); border: 1px solid var(--border);
+  }
+
   .list {
     border-inline-end: 1px solid var(--border); background: var(--bg);
     display: flex; flex-direction: column;
@@ -789,7 +923,7 @@ function renderLogin(lang, theme, error, configured) {
   </div>
 
   <div class="login-wrap">
-    <form class="login-card" method="POST" action="/mail/login">
+    <form class="login-card" method="POST" action="${escapeHtml(CONFIG.MAIL.PATH)}/login">
       <div class="login-mark">✉</div>
       <h1>${escapeHtml(t.loginTitle)}</h1>
       <p class="sub">${escapeHtml(t.loginSub)}</p>
@@ -817,7 +951,7 @@ function renderLogin(lang, theme, error, configured) {
 // renderPanel
 //
 // The shell only. Every list, every message and the compose form
-// are painted by the script below from what /mail/api returns, so
+// are painted by the script below from what the API returns, so
 // there is exactly one place that knows what a message looks like
 // rather than a server copy and a client copy that drift.
 // ==========================================
@@ -832,7 +966,13 @@ function renderPanel(lang, theme) {
     lang,
     i18n: I18N,
     address: CONFIG.MAIL.ADDRESS,
-    name: CONFIG.MAIL.NAME
+    name: CONFIG.MAIL.NAME,
+
+    // The panel's own base path. The script builds every request
+    // and every redirect from this rather than from a literal, so
+    // moving the panel does not leave the browser calling an
+    // address the Worker stopped answering on.
+    path: CONFIG.MAIL.PATH
   }).replace(/</g, '\\u003c')
 
   return `<!DOCTYPE html>
@@ -855,7 +995,7 @@ function renderPanel(lang, theme) {
     <div class="top-actions">
       <div class="seg" role="group">${langSeg(lang)}</div>
       <button type="button" class="btn" onclick="MAIL.toggleTheme()" aria-label="theme">◐</button>
-      <form method="POST" action="/mail/logout" style="display:inline">
+      <form method="POST" action="${escapeHtml(CONFIG.MAIL.PATH)}/logout" style="display:inline">
         <button type="submit" class="btn" id="uiSignOut">${escapeHtml(t.signOut)}</button>
       </form>
     </div>
@@ -900,6 +1040,7 @@ function panelScript() {
   return String.raw`
 (function () {
   var BOOT = window.MAIL_BOOT || {};
+  var BASE = BOOT.path || '/domail2';
   var lang = BOOT.lang || 'fa';
   var T = function () { return BOOT.i18n[lang] || BOOT.i18n.fa; };
 
@@ -907,6 +1048,10 @@ function panelScript() {
     box: 'in',
     q: '',
     rows: [],
+    folders: [],
+    blocks: [],
+    folderColor: 'slate',
+    editingFolder: null,
     counts: { unread: 0, inbox: 0, sent: 0, starred: 0, archived: 0 },
     current: null,
     status: null,
@@ -955,12 +1100,12 @@ function panelScript() {
   function api(action, body) {
     var payload = body || {};
     payload.action = action;
-    return fetch('/mail/api', {
+    return fetch(BASE + '/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     }).then(function (res) {
-      if (res.status === 401) { window.location.href = '/mail/login'; return null; }
+      if (res.status === 401) { window.location.href = BASE + '/login'; return null; }
       return res.json().catch(function () { return { error: 'bad_response' }; });
     });
   }
@@ -971,10 +1116,13 @@ function panelScript() {
   var BOXES = [
     { key: 'in', label: 'inbox', count: 'inbox' },
     { key: 'out', label: 'sent', count: 'sent' },
+    { key: 'contact', label: 'contactBox', count: null },
     { key: 'starred', label: 'starred', count: 'starred' },
     { key: 'archived', label: 'archived', count: 'archived' },
     { key: 'system', label: 'system', count: null }
   ];
+
+  var COLORS = ['blue', 'green', 'amber', 'rose', 'violet', 'slate'];
 
   function paintRail() {
     var t = T();
@@ -993,11 +1141,37 @@ function panelScript() {
         + '</a>';
     });
 
+    // The operator's own folders, under a separator so they read
+    // as a different kind of thing from the built-in boxes -
+    // which they are: those are views, these are places.
+    if (state.folders.length) {
+      html += '<p class="sep">' + esc(t.folders) + '</p>';
+      state.folders.forEach(function (folder) {
+        var key = 'folder:' + folder.id;
+        html += '<a role="button" tabindex="0" data-box="' + esc(key) + '"'
+          + ' aria-current="' + (state.box === key && !state.composing ? 'true' : 'false') + '"'
+          + ' onclick="MAIL.open(\'' + esc(key) + '\')"'
+          + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();MAIL.open(\'' + esc(key) + '\')}">'
+          + '<span class="fname"><i class="dot ' + esc(folder.color || 'slate') + '"></i>'
+          +   '<span>' + esc(folder.name) + '</span></span>'
+          + '<span class="count">' + (folder.n || 0) + '</span>'
+          + '</a>';
+      });
+    }
+
     html += '<p class="hint">' + esc(t.systemHint) + '</p>';
 
     if (state.box === 'in' && state.counts.unread) {
       html += '<button type="button" class="btn" style="margin-top:10px" onclick="MAIL.readAll()">'
         + esc(t.markAllRead) + '</button>';
+    }
+
+    // Folders and the blocklist live on one screen rather than in
+    // a dialog: both are lists the operator scans and edits, and a
+    // modal over a mailbox hides the thing being organised.
+    if (state.hasFolders) {
+      html += '<button type="button" class="btn" style="margin-top:8px" onclick="MAIL.manage()">'
+        + esc(t.folders) + ' · ' + esc(t.blocks) + '</button>';
     }
 
     el('rail').innerHTML = html;
@@ -1076,7 +1250,7 @@ function panelScript() {
   // NOT into the page. It is HTML somebody else wrote and sent to
   // this address; putting it in the document would let a message
   // read the panel's session, rewrite its buttons or fetch
-  // /mail/api as the operator. allow-same-origin is deliberately
+  // the API as the operator. allow-same-origin is deliberately
   // absent, so the frame gets an opaque origin and can reach
   // nothing.
   // ==========================================
@@ -1104,8 +1278,31 @@ function panelScript() {
         + '<button type="button" class="btn" onclick="MAIL.star()">'
         +   esc(message.starred ? t.unstar : t.star) + '</button>'
         + '<button type="button" class="btn" onclick="MAIL.archive()">'
-        +   esc(message.archived ? t.unarchive : t.archive) + '</button>'
-        + '<button type="button" class="btn danger" onclick="MAIL.remove()">' + esc(t.remove) + '</button>';
+        +   esc(message.archived ? t.unarchive : t.archive) + '</button>';
+
+      // Filing, as a select rather than a menu: the whole folder
+      // list is visible at once and it works with a keyboard and
+      // a screen reader without any code of ours.
+      if (state.hasFolders) {
+        tools += '<select onchange="MAIL.move(this.value)" aria-label="' + esc(t.moveTo) + '">'
+          + '<option value="">' + esc(t.noFolder) + '</option>'
+          + state.folders.map(function (folder) {
+              return '<option value="' + esc(folder.id) + '"'
+                + (message.folder_id === folder.id ? ' selected' : '') + '>'
+                + esc(folder.name) + '</option>';
+            }).join('')
+          + '</select>';
+      }
+
+      // Blocking from the message itself, which is where the
+      // decision is actually made - not from a settings screen the
+      // operator has to go and find the address again for.
+      if (state.hasFolders && message.direction === 'in' && message.from_addr) {
+        tools += '<button type="button" class="btn" onclick="MAIL.blockSender()">'
+          + esc(t.blockThis) + '</button>';
+      }
+
+      tools += '<button type="button" class="btn danger" onclick="MAIL.remove()">' + esc(t.remove) + '</button>';
     }
 
     var meta = system
@@ -1116,6 +1313,15 @@ function panelScript() {
       : esc(t.from) + ': ' + esc(message.from_name ? message.from_name + ' <' + message.from_addr + '>' : message.from_addr)
         + '<br>' + esc(t.to) + ': ' + esc(message.to_addr)
         + '<br>' + esc(when(message.created_at))
+        // A contact-form message carries an address a stranger
+        // TYPED, not one an SMTP envelope proved. The chip is the
+        // difference, and it belongs where the operator looks
+        // before pressing reply.
+        + (message.source === 'contact'
+            ? ' · <span class="chip">' + esc(t.fromContact)
+              + (message.spam_score ? ' · ' + esc(t.spamScore) + ' ' + message.spam_score : '')
+              + '</span>'
+            : '')
         + (message.error ? '<br>' + esc(message.error) : '');
 
     var notes = '';
@@ -1262,12 +1468,97 @@ function panelScript() {
   }
 
   // ==========================================
+  // manageHtml
+  // Folders and the blocklist, on one screen.
+  // ==========================================
+  function manageHtml() {
+    var t = T();
+
+    var folders = state.folders.length
+      ? state.folders.map(function (folder) {
+          return '<div class="mrow">'
+            + '<i class="dot ' + esc(folder.color || 'slate') + '"></i>'
+            + '<span class="grow">' + esc(folder.name)
+            +   ' <span class="meta">(' + (folder.n || 0) + ')</span></span>'
+            + '<button type="button" class="btn" onclick="MAIL.folderEdit(\'' + esc(folder.id) + '\')">'
+            +   esc(t.rename) + '</button>'
+            + '<button type="button" class="btn danger" onclick="MAIL.folderDrop(\'' + esc(folder.id) + '\')">'
+            +   esc(t.remove) + '</button>'
+            + '</div>';
+        }).join('')
+      : '';
+
+    var swatches = COLORS.map(function (color) {
+      return '<button type="button" class="dot ' + color + '" data-color="' + color + '"'
+        + ' aria-pressed="' + (state.folderColor === color ? 'true' : 'false') + '"'
+        + ' aria-label="' + color + '"'
+        + ' onclick="MAIL.pickColor(\'' + color + '\')"></button>';
+    }).join('');
+
+    var blocks = state.blocks.length
+      ? state.blocks.map(function (block) {
+          return '<div class="mrow">'
+            + '<span class="grow" dir="ltr">' + esc(block.value)
+            +   '<br><span class="meta">' + esc(block.kind)
+            +   (block.hits ? ' · ' + block.hits + ' ' + esc(t.blockHits) : '')
+            +   (block.note ? ' · ' + esc(block.note) : '') + '</span></span>'
+            + '<button type="button" class="btn" onclick="MAIL.blockDrop(\'' + esc(block.id) + '\')">'
+            +   esc(t.blockDrop) + '</button>'
+            + '</div>';
+        }).join('')
+      : '<p class="meta">' + esc(t.blockNone) + '</p>';
+
+    return '<div class="manage">'
+      + '<div class="pane-tools" style="margin-bottom:14px">'
+      +   '<button type="button" class="btn back-btn" onclick="MAIL.back()">←</button>'
+      + '</div>'
+      + '<div class="manage-grid">'
+
+      +   '<div class="mcard">'
+      +     '<h3>' + esc(t.folders) + '</h3>'
+      +     folders
+      +     '<div class="mform">'
+      +       '<input type="text" id="fName" placeholder="' + esc(t.folderName) + '" maxlength="60">'
+      +       '<div class="swatches" role="group" aria-label="' + esc(t.folderColor) + '">' + swatches + '</div>'
+      +       '<button type="button" class="btn primary" onclick="MAIL.folderSave()">'
+      +         esc(t.save) + '</button>'
+      +     '</div>'
+      +   '</div>'
+
+      +   '<div class="mcard">'
+      +     '<h3>' + esc(t.blocks) + '</h3>'
+      +     blocks
+      +     '<div class="mform">'
+      +       '<select id="bKind" aria-label="' + esc(t.blockAdd) + '">'
+      +         '<option value="address">' + esc(t.blockAddr) + '</option>'
+      +         '<option value="domain">' + esc(t.blockDomain) + '</option>'
+      +       '</select>'
+      +       '<input type="text" id="bValue" dir="ltr" placeholder="' + esc(t.blockValue) + '">'
+      +       '<input type="text" id="bNote" placeholder="' + esc(t.blockNote) + '" maxlength="200">'
+      +       '<button type="button" class="btn primary" onclick="MAIL.blockAdd()">'
+      +         esc(t.blockAdd) + '</button>'
+      +     '</div>'
+      +   '</div>'
+
+      + '</div></div>';
+  }
+
+
+  function refreshFolders(res) {
+    if (!res) return;
+    if (res.folders) state.folders = res.folders;
+    if (res.blocks) state.blocks = res.blocks;
+  }
+
+
+  // ==========================================
   // The public object
   // ==========================================
   window.MAIL = {
     open: function (box) {
       state.box = box;
       state.composing = false;
+      state.managing = false;
       state.current = null;
       el('shell').classList.remove('reading');
       el('pane').innerHTML = '<div class="pane-body"><p class="empty">' + esc(T().empty) + '</p></div>';
@@ -1279,6 +1570,7 @@ function panelScript() {
 
     back: function () {
       state.composing = false;
+      state.managing = false;
       state.current = null;
       el('shell').classList.remove('reading');
       el('pane').innerHTML = '<div class="pane-body"><p class="empty">' + esc(T().empty) + '</p></div>';
@@ -1486,6 +1778,119 @@ function panelScript() {
       });
     },
 
+    // ==========================================
+    // Folders and blocking
+    // ==========================================
+    manage: function () {
+      state.composing = false;
+      state.managing = true;
+      state.current = null;
+      el('shell').classList.add('reading');
+      el('pane').innerHTML = manageHtml();
+      paintRail();
+    },
+
+    pickColor: function (color) {
+      state.folderColor = color;
+      Array.prototype.forEach.call(document.querySelectorAll('.swatches [data-color]'), function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-color') === color ? 'true' : 'false');
+      });
+    },
+
+    folderSave: function () {
+      var input = el('fName');
+      var name = (input && input.value || '').trim();
+      if (!name) return;
+
+      api('folderSave', { id: state.editingFolder, name: name, color: state.folderColor })
+        .then(function (res) {
+          if (!res) return;
+          refreshFolders(res);
+          state.editingFolder = null;
+          window.MAIL.manage();
+        });
+    },
+
+    folderEdit: function (id) {
+      var folder = state.folders.filter(function (f) { return f.id === id; })[0];
+      if (!folder) return;
+      state.editingFolder = id;
+      state.folderColor = folder.color || 'slate';
+      window.MAIL.manage();
+      var input = el('fName');
+      if (input) { input.value = folder.name; input.focus(); }
+    },
+
+    folderDrop: function (id) {
+      if (!window.confirm(T().confirmFolder)) return;
+      api('folderDrop', { id: id }).then(function (res) {
+        if (!res) return;
+        refreshFolders(res);
+        if (res.counts) state.counts = res.counts;
+
+        // The rail may have been showing the folder that just went
+        // away. Falling back to the inbox is the only sane place
+        // to land.
+        if (state.box === 'folder:' + id) state.box = 'in';
+        window.MAIL.manage();
+        load();
+      });
+    },
+
+    move: function (folderId) {
+      if (!state.current) return;
+      api('move', { id: state.current.id, folderId: folderId || null }).then(function (res) {
+        if (!res) return;
+        refreshFolders(res);
+        state.current.folder_id = folderId || null;
+        paintRail();
+        load();
+      });
+    },
+
+    blockAdd: function () {
+      var value = (el('bValue') && el('bValue').value || '').trim();
+      if (!value) return;
+      api('blockAdd', {
+        kind: el('bKind') ? el('bKind').value : 'address',
+        value: value,
+        note: el('bNote') ? el('bNote').value : ''
+      }).then(function (res) {
+        if (!res) return;
+        if (res.error) { window.alert(res.message || res.error); return; }
+        refreshFolders(res);
+        window.MAIL.manage();
+      });
+    },
+
+    blockDrop: function (id) {
+      api('blockDrop', { id: id }).then(function (res) {
+        if (!res) return;
+        refreshFolders(res);
+        window.MAIL.manage();
+      });
+    },
+
+    // Block the person whose message is open, then archive it -
+    // because the operator blocking a sender almost never wants
+    // that message left in the inbox, and doing it in two clicks
+    // when one will do is how a mailbox stays untidy.
+    blockSender: function () {
+      if (!state.current || !state.current.from_addr) return;
+      var address = state.current.from_addr;
+      if (!window.confirm(T().blockThis + '\n\n' + address)) return;
+
+      api('blockAdd', { kind: 'address', value: address }).then(function (res) {
+        if (!res) return;
+        if (res.error) { window.alert(res.message || res.error); return; }
+        refreshFolders(res);
+        return api('archive', { id: state.current.id, archived: true });
+      }).then(function () {
+        window.MAIL.back();
+        load();
+      });
+    },
+
     setLang: function (code) {
       if (!BOOT.i18n[code]) return;
       lang = code;
@@ -1506,6 +1911,7 @@ function panelScript() {
       paintRail();
       paintList();
       if (state.current) paintMessage(state.current, state.box === 'system');
+      else if (state.managing) window.MAIL.manage();
       else if (state.composing) window.MAIL.compose();
     },
 
@@ -1542,6 +1948,7 @@ function panelScript() {
   api('status', {}).then(function (res) {
     if (!res) return;
     state.status = res;
+    state.hasFolders = Boolean(res.foldersReady);
     if (res.counts) state.counts = res.counts;
     paintRail();
 
@@ -1560,6 +1967,21 @@ function panelScript() {
         + problems.join('<br><br>') + '</div>'
         + '<div class="note">' + esc(t.setupReceive) + '</div></div>';
       return;
+    }
+
+    // Folders are a separate migration and a separate probe. The
+    // mailbox works fully without them; the rail simply has no
+    // folder strip and the manage button does not appear.
+    if (state.hasFolders) {
+      api('folders', {}).then(function (folders) {
+        refreshFolders(folders);
+        paintRail();
+      });
+    } else {
+      el('listBody').insertAdjacentHTML('afterbegin',
+        '<div style="padding:14px"><div class="note">' + esc(t.needsFolders)
+        + '<br><code>npx wrangler d1 execute amircollider-licenses --remote '
+        + '--file=./migrations/0014_mail_folders.sql</code></div></div>');
     }
 
     load();

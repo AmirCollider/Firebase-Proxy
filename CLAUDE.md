@@ -34,8 +34,10 @@ A single Cloudflare Worker that serves:
 - one **landing / store / leaderboard / account page per game**
 - the **game API** shipped Unity builds call (OAuth, player data, entitlements)
 - a **crypto checkout** for a paid Unity editor extension (Unity DocSnap)
+- a **public contact form** at `/contact` that delivers into the mailbox
+- a **resume page** at `/resume` (`/cv` is an alias), the formal counterpart to `/about`
 - three password-protected **operator panels**: `/thegod`, `/testsite` and
-  `/mail` (the mailbox — see [§8b](#8b-mail--the-mailbox))
+  the mailbox at **`/domail2`** — see [§8b](#8b-domail2--the-mailbox)
 
 ~47,000 lines of hand-written JavaScript. Server-rendered HTML with inline CSS
 and inline JS — that is the architecture, not a shortcut, and it is why the CSP
@@ -76,7 +78,7 @@ Per game, derived from the id (`NEON_KATANA_*` for `neon-katana`,
 `{UPPER}_GOOGLE_CLIENT_ID_ANDROID`, `{UPPER}_DEEPLINK_SCHEME` (optional).
 
 Shared: `STATE_SIGNING_SECRET` (required when any game has `login`),
-`TheGodPassword`, `TestSitePassword`, `MailPassword`, `DOCSNAP_ADMIN_TOKEN`,
+`TheGodPassword`, `TestSitePassword`, `TheEmailPassword`, `DOCSNAP_ADMIN_TOKEN`,
 `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `BREVO_API_KEY`,
 `RESEND_API_KEY`, `DOCSNAP_MAIL_FROM`, `DOCSNAP_LICENSE_PRIVATE_KEY`,
 `DOCSNAP_KEY_WRAP_SECRET`, `DOCSNAP_ORDER_SECRET`.
@@ -107,7 +109,7 @@ Api/                   JSON endpoints for shipped clients + the panel
   PlayerDataApi.js     /database/get|set|patch/**  (the player row surface)
   GameApi.js           /games/:id/manifest|products|entitlements|consume, download
   TheGodApi.js         POST /thegod/api — ONE endpoint, `action` field, ~30 actions
-  MailApi.js           POST /mail/api — same shape, 11 actions
+  MailApi.js           POST {CONFIG.MAIL.PATH}/api — same shape, 18 actions
   AssetApi.js          /assets/** from R2
 
 Core/                  Cross-cutting, no business logic
@@ -150,15 +152,18 @@ Pages/                 Everything a browser renders (one file per page)
   Leaderboard.js       /:gameId/leaderboard  (HTML or JSON by Accept header)
   TheGod.js            /thegod  — the operator panel (4,300 lines: i18n, CSS, client JS)
   TestSite.js          /testsite — the live test panel (2,700 lines)
-  MailPanel.js         /mail — the mailbox (i18n, CSS, client JS)
+  MailPanel.js         the mailbox panel (i18n, CSS, client JS, compose editor)
+  Contact.js           /contact + POST /contact/send — the public form
+  Resume.js            /resume and /cv — the formal counterpart to /about
   Checkout.js          the DocSnap crypto checkout
   License.js           licence activate/validate/deactivate
   ...                  About, Tools, Donate, Privacy, Terms, Metrics, Health, Ping,
                        Sitemap, Icon, ReleaseNotes, NotFound, Video, OrderHelp
 
-Mail/                  The mailbox behind /mail
+Mail/                  The mailbox behind CONFIG.MAIL.PATH
   Store.js             every LICENSE_DB query the panel makes
   Inbound.js           the MIME parser + the email() handler's body
+  Spam.js              the contact form's filter — five scored signals
 
 Commerce/              The DocSnap checkout: Orders, Provider (NOWPayments),
                        Fulfilment, Emails, Mailer, Seal (AES-GCM key sealing)
@@ -220,7 +225,8 @@ Tables: `game_settings`, `game_product_overrides`, `game_versions`,
 `game_orders`, `game_entitlements`, `game_entitlement_events`,
 `game_order_attempts`, `orders`, `order_events`, `order_attempts`, `licenses`,
 `license_activations`, `license_attempts`, `mail_outbox`, `mail_messages`,
-`webhook_log`, `panel_attempts`, `player_identity`.
+`mail_folders`, `mail_blocks`, `webhook_log`, `panel_attempts`,
+`player_identity`.
 
 `mail_messages` is the `/mail` panel's mailbox (migration 0013). It is a
 different thing from `mail_outbox`: the outbox is a QUEUE the cron walks, every
@@ -435,7 +441,16 @@ per registered game) + a `RUNNERS` object keyed by `kind`.
 4. any `noteKey` you emit, in all three languages
 
 Groups: `system`, `game-<id>` (per game), `auth`, `oauth`, `db`, `d1`,
-`checkout`, `seo`, `video`, `thegod`.
+`checkout`, `seo`, `video`, `thegod`, `mail`.
+
+The `mail` group is fifteen checks over the mailbox and the contact form,
+and every one of them is a read or an asserted refusal — nothing sends a
+message, creates a folder or blocks an address, because the suite runs
+against the LIVE deployment and real correspondence is not a fixture. The
+two that POST both post something the form is *required* to refuse (an
+empty submission, and one with the honeypot filled). It also asserts that
+the old `/mail` path is closed and that robots.txt still disallows the
+panel.
 
 The `seo` group is ten GETs of public pages and the only group that
 reads response BODIES rather than status codes — every failure it is
@@ -463,22 +478,53 @@ out. Everything in it is a read or an asserted refusal — nothing writes.
 
 ---
 
-## 8b. `/mail` — the mailbox
+## 8b. `/domail2` — the mailbox
 
 `Pages/MailPanel.js` renders it; `Api/MailApi.js` is the only endpoint
-(`POST /mail/api`, `{ action, ... }`). Cookie `amir_mail_auth`, `Path=/mail`,
-**12 hours** rather than the other panels' week. Secret: **`MailPassword`**,
-and it deliberately does **not** fall back to another panel's password.
+(`POST {PATH}/api`, `{ action, ... }`). Cookie `amir_mail_auth`,
+`Path={PATH}`, **12 hours** rather than the other panels' week. Secret:
+**`TheEmailPassword`** (`MailPassword` still accepted as a second name so a
+rename cannot lock anybody out), and it deliberately does **not** fall back
+to another panel's password.
+
+**The path is `CONFIG.MAIL.PATH` = `/domail2`, and NOT `/mail`.** That word,
+with `/webmail` and `/admin`, is what every opportunistic scanner tries
+first. The password protects the panel; the address keeps its login form out
+of drive-by sweeps. Four places cannot import `Config.js` or must not, and
+each carries a comment saying it must match: `NO_LANG_ROUTING`
+(`Core/Locale.js`), `CANONICAL_EXEMPT` and `ROUTES` (`Worker.js`), and
+`DISALLOW` (`Pages/Sitemap.js`).
 
 One mailbox: `CONFIG.MAIL.ADDRESS` = `amircollider@amircollider.com`.
 
 | Box | Source |
 |---|---|
-| Inbox / Sent / Starred / Archived | `mail_messages` (migration **0013**, LICENSE_DB) |
+| Inbox / Sent / Starred / Archived | `mail_messages` (migration **0013**) |
+| Contact form | the same table, `source = 'contact'` |
+| Folders | `mail_folders` + `folder_id` (migration **0014**) |
 | System mail | `mail_outbox`, **read-only** — licence keys, receipts, order alerts |
 
 Actions: `status`, `list`, `get`, `send`, `read`, `readAll`, `star`,
-`archive`, `delete`, `system`, `systemGet`.
+`archive`, `delete`, `system`, `systemGet`, `folders`, `folderSave`,
+`folderDrop`, `move`, `blocks`, `blockAdd`, `blockDrop`.
+
+**0013 and 0014 are probed separately** (`mailTableReady` / `foldersReady`),
+because a deployment can have one and not the other. Without 0014 the
+mailbox works fully minus the folder strip and the manage screen, and says
+which file to run.
+
+### The public contact form
+
+`/contact` + `POST /contact/send` (`Pages/Contact.js`) writes into this same
+mailbox with `source = 'contact'`. The panel shows a chip on those messages,
+and the distinction matters: that address is one a stranger **typed**, not
+one an SMTP envelope proved.
+
+`Mail/Spam.js` scores five signals; 50+ is refused, a real message scores 0.
+Three of them are decisive alone and cannot false-positive — a filled
+honeypot, a submission under 3 seconds, and a URL in the *name* field. The
+blocklist is enforced here as well as on inbound mail; without that, the
+form is the documented way around a block.
 
 **Receiving is a Cloudflare Email Routing rule, not code.** `Worker.js`
 exports a third entry point, `email(message, env, ctx)`, which Cloudflare
@@ -511,6 +557,12 @@ Four things that will bite a change here:
    (`DOCSNAP_MAIL_FROM`); the panel passes its own so it can send as the
    domain. `mailSendable(env)` is the weaker check the panel uses — a
    provider key, without requiring the checkout's `DOCSNAP_MAIL_FROM`.
+5. **Deleting a folder clears `folder_id` and never deletes a message.**
+   A folder is a label; "delete folder" is a button somebody presses
+   without reading it.
+6. **A block is a silent drop, never a bounce.** Bouncing tells a spammer
+   the address is real and tells a wrongly-blocked person their mail
+   failed. The per-rule hit counter is what makes the silence auditable.
 
 ---
 
@@ -619,6 +671,11 @@ nothing else breaks — a confusing hour.
 | Add a panel action | `Api/TheGodApi.js` switch + the `bad_action` list + UI in `Pages/TheGod.js` |
 | Add a panel test | `Pages/TestSite.js` — see §8 |
 | Change the mailbox UI, or add a compose template | `Pages/MailPanel.js` — see §8b |
+| Move the mailbox to another address | `CONFIG.MAIL.PATH` **plus** the four places that cannot import it: `NO_LANG_ROUTING` (`Core/Locale.js`), `CANONICAL_EXEMPT` + `ROUTES` (`Worker.js`), `DISALLOW` (`Pages/Sitemap.js`). Each carries a comment saying so |
+| Add a folder colour | `FOLDER_COLORS` in `Api/MailApi.js` **and** a `.dot.<name>` rule in `Pages/MailPanel.js`. The list is validated server-side because the value reaches a style attribute |
+| Tune the spam filter | `Mail/Spam.js`. Every signal is scored and named on the result, so a refusal can be explained. Test it with the ten-case harness before trusting a change |
+| Change what the contact form accepts | `CONFIG.CONTACT` — limits, allowed types, retention. The page prints these numbers, so they are one constant rather than two |
+| Change what the resume says | `Pages/Resume.js`. `SKILLS` carries the level AND the evidence key; a level with no project behind it does not belong there |
 | Add a mail panel action | `Api/MailApi.js` switch + the `ACTIONS` list + UI in `Pages/MailPanel.js` |
 | Change what a mail query reads | `Mail/Store.js` — the panel's handlers run no SQL of their own |
 | Change how an incoming message is parsed | `Mail/Inbound.js`. Test it with the six-case harness described in §14 before believing it |
@@ -705,6 +762,21 @@ nothing else breaks — a confusing hour.
 
 ---
 
+9. **`0014_mail_folders.sql` is new** and belongs to `LICENSE_DB`, after
+   0013. It adds `mail_folders`, `mail_blocks` and four columns on
+   `mail_messages`. SQLite has no `ADD COLUMN IF NOT EXISTS`, so re-running
+   it errors on those four lines and changes nothing else. Until it is run,
+   the mailbox works fully minus folders and blocking, `status` reports
+   `foldersReady: false`, and the panel names the file.
+
+10. **The mailbox moved from `/mail` to `/domail2` in 6.9.0**, and the
+    secret from `MailPassword` to `TheEmailPassword`. Both old names are
+    dead paths now except that the old SECRET is still read as a fallback.
+    A `/testsite` check asserts the old path 404s — if it ever answers
+    again, something re-added a route.
+
+---
+
 ## 13. Invariants
 
 - Player id = first 15 chars of the email local part, lowercased
@@ -730,9 +802,18 @@ nothing else breaks — a confusing hour.
   into one does not hand over another. `/mail` additionally has no password
   fallback: an unset `MailPassword` means nobody gets in, never "whoever
   knows the test panel's password".
-- The mail panel writes only to `mail_messages`. `mail_outbox` is the cron's,
-  and a panel that could edit a queue the cron is walking could re-send
-  somebody's licence key.
+- The mail panel writes only to `mail_messages`, `mail_folders` and
+  `mail_blocks`. `mail_outbox` is the cron's, and a panel that could edit a
+  queue the cron is walking could re-send somebody's licence key.
+- The blocklist is enforced in **two** places — `Mail/Inbound.js` and
+  `Pages/Contact.js`. One without the other makes the contact form the
+  documented way around a block.
+- An attachment is validated by its declared type **and** its first bytes,
+  and is stored under a name of ours. An uploaded filename is
+  attacker-controlled text that would otherwise become a path in a bucket.
+- Nothing on this site publishes the owner's legal name. It is on every
+  certificate, which is exactly why the resume page lists those as facts
+  and never links the files.
 - Anything a player can delete about themselves is keyed on **player id AND
   email**, never the id alone (`deletePlayerByEmail`, `releasePlayerIdentity`).
   Two people can derive one player id, and a self-service delete is the worst

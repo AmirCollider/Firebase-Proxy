@@ -79,7 +79,7 @@ export const CORS_HEADERS = deepFreeze({
 // Runtime constants. Durations are milliseconds.
 // ==========================================
 export const CONFIG = deepFreeze({
-  VERSION: '6.8.0',
+  VERSION: '6.9.0',
 
   // A constant rather than url.origin: a handful of places have to
   // produce an absolute address (a licence refusal, canonical and
@@ -498,6 +498,20 @@ export const CONFIG = deepFreeze({
     ADDRESS: 'amircollider@amircollider.com',
     NAME: 'AmirCollider',
 
+    // Where the panel answers. Not /mail: that is a word a scanner
+    // guesses on the first pass, and this panel holds
+    // correspondence and can send as the domain. An address nobody
+    // links to and nobody guesses is not security on its own - the
+    // password is - but it keeps the login form out of every
+    // opportunistic sweep that tries /mail, /webmail and /admin.
+    //
+    // Changing it means changing four other places that cannot
+    // import this file or must not: NO_LANG_ROUTING in
+    // Core/Locale.js, CANONICAL_EXEMPT in Worker.js, DISALLOW in
+    // Pages/Sitemap.js, and the ROUTES entries. Each one names
+    // this constant in a comment.
+    PATH: '/domail2',
+
     // How long a signed-in session on /mail lasts. Shorter than
     // the other panels' week: this one can read correspondence
     // and send mail as the domain, which is the most damaging
@@ -516,6 +530,45 @@ export const CONFIG = deepFreeze({
     // stolen session - which is exactly what it is for.
     SEND_RATE_LIMIT: 60,
     SEND_RATE_WINDOW_MS: 60 * 60 * 1000
+  },
+
+  // ==========================================
+  // The public contact form, at /contact.
+  //
+  // It writes into the same mailbox /domail2 reads, which is the
+  // whole point: a visitor's question arrives beside the mail that
+  // came in over SMTP, in one place, rather than in a form
+  // provider's dashboard nobody opens.
+  //
+  // Every number here is a promise the page makes out loud, so
+  // they live together rather than scattered through the handler
+  // that enforces them.
+  // ==========================================
+  CONTACT: {
+    // Submissions one address may send per window. Low, because
+    // one person with one question sends one - and the failure
+    // mode of a form like this is a script sending four hundred.
+    RATE_LIMIT: 5,
+    RATE_WINDOW_MS: 60 * 60 * 1000,
+
+    MAX_MESSAGE: 8000,
+    MAX_SUBJECT: 160,
+    MAX_NAME: 80,
+
+    // Attachments. Images only, and few: this is a contact form,
+    // not a file host, and every byte accepted here is a byte
+    // somebody can make the Worker store.
+    MAX_FILES: 3,
+    MAX_FILE_BYTES: 4 * 1024 * 1024,
+    ALLOWED_TYPES: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
+
+    // How long an attachment stays in R2. A screenshot is useful
+    // while the conversation is live and is clutter afterwards.
+    FILE_RETENTION_MS: 90 * 24 * 60 * 60 * 1000,
+
+    // The R2 prefix they are written under, so a sweep can find
+    // them without touching anything else in the bucket.
+    FILE_PREFIX: 'contact/'
   },
 
   STATE_EXPIRY_MS: 30 * 60 * 1000,

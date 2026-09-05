@@ -135,6 +135,7 @@ export const NAV_I18N = {
     privacy: 'حریم خصوصی',
     terms: 'شرایط استفاده',
     support: 'پشتیبانی',
+    contact: 'ارتباط با من',
     themeToLight: 'حالت روشن',
     themeToDark: 'حالت تاریک',
     menu: 'منو',
@@ -169,6 +170,7 @@ export const NAV_I18N = {
     privacy: 'Privacy',
     terms: 'Terms',
     support: 'Support',
+    contact: 'Contact me',
     themeToLight: 'Light mode',
     themeToDark: 'Dark mode',
     menu: 'Menu',
@@ -203,6 +205,7 @@ export const NAV_I18N = {
     privacy: 'プライバシー',
     terms: '利用規約',
     support: 'サポート',
+    contact: 'お問い合わせ',
     themeToLight: 'ライトモード',
     themeToDark: 'ダークモード',
     menu: 'メニュー',
@@ -804,6 +807,11 @@ export function siteFooter({ lang, games = [] } = {}) {
         { href: '/terms', label: p.terms },
         { href: '/license', label: p.license },
         { href: '/order', label: p.orderHelp },
+        // The form first, the raw address second. Somebody who
+        // wants to write a message gets a box to write it in; the
+        // mailto stays for people who would rather use their own
+        // client, which is a real preference and not a fallback.
+        { href: '/contact', label: p.contact },
         { href: 'mailto:' + CONFIG.SUPPORT_EMAIL, label: p.support }
       ]
     }

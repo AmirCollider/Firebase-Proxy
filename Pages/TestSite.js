@@ -347,6 +347,39 @@ const TEST_GROUPS = [
       { kind: 'tgUnity' }, { kind: 'tgEnv' }, { kind: 'tgOrders' },
       { kind: 'tgPlayers' }, { kind: 'tgVerify' }
     ]
+  },
+
+  /* ==========================================
+     The mailbox.
+
+     Read paths and asserted refusals only - nothing here sends a
+     message, creates a folder or blocks an address, because this
+     panel is pointed at the LIVE deployment and a test that writes
+     to it writes to real correspondence.
+
+     Authorisation works the way the TheGod group's does: the
+     browser already holds the panel cookie if the operator is
+     signed in, and cookie paths match the REQUEST url, so these
+     calls carry it automatically. Signed out, every one warns
+     rather than fails - "sign in first" is not a broken
+     deployment.
+
+     The public contact form is checked here too. It is not part
+     of the panel, but it writes into the same mailbox, and the
+     thing most worth knowing about it - that its POST refuses an
+     empty submission rather than filing one - is exactly the kind
+     of check nothing else on this site performs.
+     ========================================== */
+  {
+    key: 'mail',
+    titleKey: 'gMail',
+    tests: [
+      { kind: 'mlReachable' }, { kind: 'mlMethod' }, { kind: 'mlStatus' },
+      { kind: 'mlTable' }, { kind: 'mlSend' }, { kind: 'mlList' },
+      { kind: 'mlFolders' }, { kind: 'mlSystem' }, { kind: 'mlBadAction' },
+      { kind: 'mlOldPath' }, { kind: 'mlNoIndex' },
+      { kind: 'ctPage' }, { kind: 'ctToken' }, { kind: 'ctEmpty' }, { kind: 'ctHoneypot' }
+    ]
   }
 ]
 
@@ -413,6 +446,29 @@ const I18N = {
     gSeo: 'دیده‌شدن در گوگل',
     gVideo: 'ویدیوهای معرفی',
     gTheGod: 'پنل TheGod',
+    gMail: 'صندوق ایمیل',
+    t_mlReachable: 'در دسترس بودن پنل', d_mlReachable: 'آدرس پنل باید یا صفحه بدهد یا به لاگین بفرستد',
+    t_mlMethod: 'رد کردن GET روی API', d_mlMethod: 'یک GET روی endpoint باید رد شود، نه اینکه چیزی برگرداند',
+    t_mlStatus: 'وضعیت صندوق', d_mlStatus: 'status باید آدرس صندوق و وضعیت ارسال را بگوید',
+    t_mlTable: 'جدول پیام‌ها', d_mlTable: 'migration 0013 اجرا شده باشد',
+    t_mlSend: 'کلید ارسال', d_mlSend: 'یکی از RESEND_API_KEY یا BREVO_API_KEY تعریف شده باشد',
+    t_mlList: 'خواندن صندوق', d_mlList: 'list باید بدون خطا فهرست بدهد',
+    t_mlFolders: 'پوشه‌ها و مسدودها', d_mlFolders: 'migration 0014 اجرا شده باشد',
+    t_mlSystem: 'ایمیل‌های سیستم', d_mlSystem: 'mail_outbox باید خوانده شود',
+    t_mlBadAction: 'رد کردن action نامعتبر', d_mlBadAction: 'باید 400 با فهرست actionهای واقعی بدهد',
+    t_mlOldPath: 'بسته بودن مسیر قدیمی', d_mlOldPath: 'مسیر /mail نباید دیگر جواب بدهد',
+    t_mlNoIndex: 'ایندکس نشدن پنل', d_mlNoIndex: 'robots.txt باید مسیر پنل را ببندد',
+    t_ctPage: 'صفحه‌ی تماس', d_ctPage: 'صفحه باید باز شود و فرم داشته باشد',
+    t_ctToken: 'توکن ضد اسپم', d_ctToken: 'فرم باید توکن امضاشده و فیلد تله داشته باشد',
+    t_ctEmpty: 'رد کردن فرم خالی', d_ctEmpty: 'ارسال بدون محتوا باید رد شود',
+    t_ctHoneypot: 'گرفتن ربات', d_ctHoneypot: 'پر شدن فیلد تله باید ارسال را رد کند',
+    n_mlNoAuth: 'اول در پنل ایمیل وارد شو',
+    n_mlNoTable: 'migration 0013 را اجرا کن',
+    n_mlNoFolders: 'migration 0014 را اجرا کن',
+    n_mlNoSend: 'کلید ارسال تعریف نشده',
+    n_mlOldOpen: 'مسیر قدیمی هنوز جواب می‌دهد',
+    n_ctNoForm: 'فرم پیدا نشد',
+    n_ctNoToken: 'توکن یا فیلد تله نیست',
     // detail fragments
     net: 'خطای شبکه',
     coOff: 'هنوز پیکربندی نشده (۵۰۳)',
@@ -640,6 +696,29 @@ const I18N = {
     gSeo: 'Search visibility',
     gVideo: 'Demo videos',
     gTheGod: 'TheGod panel',
+    gMail: 'Mailbox',
+    t_mlReachable: 'Panel reachable', d_mlReachable: 'the panel path must render or redirect to its login',
+    t_mlMethod: 'API refuses GET', d_mlMethod: 'a GET on the endpoint must be refused, not answered',
+    t_mlStatus: 'Mailbox status', d_mlStatus: 'status must report the address and whether sending is configured',
+    t_mlTable: 'Message table', d_mlTable: 'migration 0013 has been run',
+    t_mlSend: 'Sending key', d_mlSend: 'RESEND_API_KEY or BREVO_API_KEY is set',
+    t_mlList: 'Reading a box', d_mlList: 'list must return a page without error',
+    t_mlFolders: 'Folders and blocking', d_mlFolders: 'migration 0014 has been run',
+    t_mlSystem: 'System mail', d_mlSystem: 'mail_outbox must be readable',
+    t_mlBadAction: 'Unknown action refused', d_mlBadAction: 'must answer 400 and name the real actions',
+    t_mlOldPath: 'Old path closed', d_mlOldPath: '/mail must no longer answer',
+    t_mlNoIndex: 'Panel not indexable', d_mlNoIndex: 'robots.txt must disallow the panel path',
+    t_ctPage: 'Contact page', d_ctPage: 'the page must render and carry its form',
+    t_ctToken: 'Anti-spam fields', d_ctToken: 'the form must carry a signed token and a honeypot',
+    t_ctEmpty: 'Empty submission refused', d_ctEmpty: 'posting nothing must be rejected',
+    t_ctHoneypot: 'Bot caught', d_ctHoneypot: 'a filled honeypot must be rejected',
+    n_mlNoAuth: 'sign in at the mail panel first',
+    n_mlNoTable: 'run migration 0013',
+    n_mlNoFolders: 'run migration 0014',
+    n_mlNoSend: 'no sending key configured',
+    n_mlOldOpen: 'the old path still answers',
+    n_ctNoForm: 'no form found',
+    n_ctNoToken: 'token or honeypot missing',
     net: 'Network error',
     coOff: 'Not configured yet (503)',
     coNoAuth: 'Sign in at /testsite first',
@@ -864,6 +943,29 @@ const I18N = {
     gSeo: '検索での見え方',
     gVideo: 'デモ動画',
     gTheGod: 'TheGod パネル',
+    gMail: 'メールボックス',
+    t_mlReachable: 'パネルに到達できる', d_mlReachable: 'パネルのパスが表示されるかログインへ転送されること',
+    t_mlMethod: 'API が GET を拒否', d_mlMethod: 'エンドポイントへの GET は拒否されること',
+    t_mlStatus: 'メールボックスの状態', d_mlStatus: 'status がアドレスと送信設定を報告すること',
+    t_mlTable: 'メッセージテーブル', d_mlTable: 'マイグレーション 0013 が実行済みであること',
+    t_mlSend: '送信キー', d_mlSend: 'RESEND_API_KEY または BREVO_API_KEY が設定されていること',
+    t_mlList: 'ボックスの読み取り', d_mlList: 'list がエラーなく一覧を返すこと',
+    t_mlFolders: 'フォルダとブロック', d_mlFolders: 'マイグレーション 0014 が実行済みであること',
+    t_mlSystem: 'システムメール', d_mlSystem: 'mail_outbox が読み取れること',
+    t_mlBadAction: '不正な action の拒否', d_mlBadAction: '400 を返し、実在する action を示すこと',
+    t_mlOldPath: '旧パスの閉鎖', d_mlOldPath: '/mail が応答しないこと',
+    t_mlNoIndex: 'パネルが索引対象外', d_mlNoIndex: 'robots.txt がパネルのパスを拒否すること',
+    t_ctPage: 'お問い合わせページ', d_ctPage: 'ページが表示され、フォームがあること',
+    t_ctToken: 'スパム対策フィールド', d_ctToken: '署名付きトークンとハニーポットがあること',
+    t_ctEmpty: '空の送信を拒否', d_ctEmpty: '内容のない送信が拒否されること',
+    t_ctHoneypot: 'ボットの検出', d_ctHoneypot: 'ハニーポットが埋まっていれば拒否されること',
+    n_mlNoAuth: '先にメールパネルにサインインしてください',
+    n_mlNoTable: 'マイグレーション 0013 を実行してください',
+    n_mlNoFolders: 'マイグレーション 0014 を実行してください',
+    n_mlNoSend: '送信キーが未設定です',
+    n_mlOldOpen: '旧パスがまだ応答しています',
+    n_ctNoForm: 'フォームが見つかりません',
+    n_ctNoToken: 'トークンまたはハニーポットがありません',
     net: 'ネットワークエラー',
     coOff: '未設定です (503)',
     coNoAuth: 'まず /testsite にサインインしてください',
@@ -1382,6 +1484,11 @@ function renderDashboard(GAMES, baseUrl, lang, theme) {
     // change there re-aims the test instead of breaking it.
     siteOrigin: siteOrigin(),
     langs: LANGS,
+
+    // Where the mailbox answers, so the mail group aims itself.
+    // Hard-coding it here would make this group red the next time
+    // CONFIG.MAIL.PATH changes - which it already did once.
+    mailPath: CONFIG.MAIL.PATH,
     brandForms: Object.values((CONFIG.BRAND && CONFIG.BRAND.SCRIPTS) || {}).filter(Boolean),
 
     // Every spelling of the FIRST game's name, including the
@@ -2141,6 +2248,57 @@ function dashClientScript() {
       return (data.gameIds && data.gameIds[0]) || 'neon-katana';
     }
 
+    /* ==========================================
+       The mailbox group's shared plumbing.
+
+       Same shape as tgApi/tgRunner above and for the same
+       reasons - the difference is which panel's cookie carries
+       the request and which endpoint it goes to. Signed out is a
+       WARN, not a fail: an operator running the suite without
+       having opened the mail panel has not broken anything.
+       ========================================== */
+    function mailPath() {
+      return (data.mailPath || '/domail2');
+    }
+
+    function mlApi(action, payload) {
+      var body = payload || {};
+      body.action = action;
+
+      return postJson(mailPath() + '/api', body).then(function (r) {
+        if (!r.ok) return { net: true };
+        if (r.status === 401 || r.status === 403) return { unauth: true, ping: r.ping, status: r.status };
+        return r.res.json()
+          .then(function (d) { return { data: d, status: r.status, ping: r.ping }; })
+          .catch(function () { return { bad: true, status: r.status, ping: r.ping }; });
+      });
+    }
+
+    function mlRunner(action, payload, assert) {
+      return mlApi(action, payload).then(function (out) {
+        if (out.net) return netFail();
+        if (out.unauth) return { status: 'warn', code: out.status, ping: out.ping, noteKey: 'mlNoAuth' };
+        if (out.bad) return { status: 'fail', code: out.status, ping: out.ping, noteKey: 'badStruct' };
+
+        var d = out.data;
+        if (!d || d.ok !== true) {
+          return {
+            status: 'fail', code: out.status, ping: out.ping,
+            noteKey: 'tgError', noteVal: (d && (d.error || d.message)) || '—'
+          };
+        }
+
+        var verdict = assert ? assert(d) : null;
+        if (!verdict) return { status: 'pass', code: out.status, ping: out.ping };
+
+        return {
+          status: verdict.status || 'fail',
+          code: out.status, ping: out.ping,
+          noteKey: verdict.noteKey, noteVal: verdict.noteVal
+        };
+      });
+    }
+
     var RUNNERS = {
       /* ==========================================
          What a crawler sees.
@@ -2405,6 +2563,202 @@ function dashClientScript() {
             return { status: 'pass', code: 400, ping: out.ping };
           }
           return { status: 'fail', code: out.status, ping: out.ping, noteKey: 'expected', noteVal: '400 bad_action' };
+        });
+      },
+
+      /* ==========================================
+         The mailbox, from here.
+
+         Everything is a read or an asserted refusal. Nothing in
+         this group sends a message, files anything, or blocks an
+         address: the suite runs against the LIVE deployment, and
+         real correspondence is not a fixture.
+         ========================================== */
+
+      mlReachable: function () {
+        return fetchTest(mailPath(), { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          // 200 signed in, 302 to the login signed out. Both are
+          // the panel working; a 404 means it moved and something
+          // did not follow.
+          if (r.status === 200 || r.status === 302) {
+            return { status: 'pass', code: r.status, ping: r.ping };
+          }
+          return expectFail(r, '200 / 302');
+        });
+      },
+
+      mlMethod: function () {
+        return fetchTest(mailPath() + '/api', { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          // The endpoint is POST-only, so a GET must not match the
+          // route at all. Anything that answers here is a second
+          // way in that nobody wrote a check for.
+          if (r.status === 404 || r.status === 405) {
+            return { status: 'pass', code: r.status, ping: r.ping };
+          }
+          return expectFail(r, '404 / 405');
+        });
+      },
+
+      mlStatus: function () {
+        return mlRunner('status', {}, function (d) {
+          if (!d.address || d.address.indexOf('@') === -1) return { noteKey: 'badStruct' };
+          return null;
+        });
+      },
+
+      mlTable: function () {
+        return mlRunner('status', {}, function (d) {
+          // A missing table is a FAILURE, not a warning: the panel
+          // opens, looks fine, and refuses every action. The same
+          // reasoning as tgSchema above.
+          if (!d.tableReady) return { noteKey: 'mlNoTable' };
+          return null;
+        });
+      },
+
+      mlSend: function () {
+        return mlRunner('status', {}, function (d) {
+          // A warning rather than a failure. A deployment with no
+          // provider key still receives mail and still shows it;
+          // it just cannot answer, which is a configuration state
+          // rather than a broken one.
+          if (!d.canSend) return { status: 'warn', noteKey: 'mlNoSend' };
+          return null;
+        });
+      },
+
+      mlList: function () {
+        return mlRunner('list', { box: 'in', limit: 5 }, function (d) {
+          if (!Array.isArray(d.rows)) return { noteKey: 'badStruct' };
+          if (!d.counts) return { noteKey: 'badStruct' };
+          return null;
+        });
+      },
+
+      mlFolders: function () {
+        return mlRunner('status', {}, function (d) {
+          if (!d.foldersReady) return { status: 'warn', noteKey: 'mlNoFolders' };
+          return null;
+        });
+      },
+
+      mlSystem: function () {
+        return mlRunner('system', { limit: 5 }, function (d) {
+          if (!Array.isArray(d.rows)) return { noteKey: 'badStruct' };
+          return null;
+        });
+      },
+
+      mlBadAction: function () {
+        return mlApi('definitely-not-an-action', {}).then(function (out) {
+          if (out.net) return netFail();
+          if (out.unauth) return { status: 'warn', code: out.status, ping: out.ping, noteKey: 'mlNoAuth' };
+
+          // 400, and the body has to NAME the real actions - which
+          // is the difference between an endpoint that refuses a
+          // typo helpfully and one that just says no.
+          if (out.status === 400 && out.data && Array.isArray(out.data.actions) && out.data.actions.length) {
+            return { status: 'pass', code: 400, ping: out.ping };
+          }
+          return {
+            status: 'fail', code: out.status, ping: out.ping,
+            noteKey: 'expected', noteVal: '400 + actions[]'
+          };
+        });
+      },
+
+      /* The panel moved off /mail, and the point of moving it is
+         that the old address stops answering. A redirect would
+         defeat it entirely. */
+      mlOldPath: function () {
+        return fetchTest('/mail', { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          if (r.status === 404) return { status: 'pass', code: 404, ping: r.ping };
+          return { status: 'fail', code: r.status, ping: r.ping, noteKey: 'mlOldOpen' };
+        });
+      },
+
+      mlNoIndex: function () {
+        return fetchTest('/robots.txt', { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          return r.res.text().then(function (body) {
+            var wanted = 'Disallow: ' + mailPath();
+            if (body.indexOf(wanted) === -1) {
+              return { status: 'fail', code: r.status, ping: r.ping, noteKey: 'expected', noteVal: wanted };
+            }
+            return { status: 'pass', code: r.status, ping: r.ping };
+          });
+        });
+      },
+
+      /* ---------- the public contact form ---------- */
+
+      ctPage: function () {
+        return fetchTest('/contact', { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          if (r.status !== 200) return expectFail(r, '200');
+          return r.res.text().then(function (body) {
+            if (body.indexOf('id="ctForm"') === -1) {
+              return { status: 'fail', code: r.status, ping: r.ping, noteKey: 'ctNoForm' };
+            }
+            return { status: 'pass', code: r.status, ping: r.ping };
+          });
+        });
+      },
+
+      ctToken: function () {
+        return fetchTest('/contact', { method: 'GET' }).then(function (r) {
+          if (!r.ok) return netFail();
+          return r.res.text().then(function (body) {
+            var hasToken = /name="token" value="\d+\.[0-9a-f]{16,}"/.test(body);
+            var hasTrap = body.indexOf('name="website"') !== -1;
+            if (!hasToken || !hasTrap) {
+              return { status: 'fail', code: r.status, ping: r.ping, noteKey: 'ctNoToken' };
+            }
+            return { status: 'pass', code: r.status, ping: r.ping };
+          });
+        });
+      },
+
+      /* Both of the checks below POST, and both post something the
+         form is REQUIRED to refuse - so neither can ever file a
+         message in the real mailbox. That is the only reason a
+         write-shaped test is allowed in this suite at all. */
+      ctEmpty: function () {
+        var body = new FormData();
+        body.append('name', '');
+        body.append('email', '');
+        body.append('subject', '');
+        body.append('message', '');
+
+        return fetchTest('/contact/send', { method: 'POST', body: body }).then(function (r) {
+          if (!r.ok) return netFail();
+          if (r.status >= 400 && r.status < 500) {
+            return { status: 'pass', code: r.status, ping: r.ping };
+          }
+          return expectFail(r, '4xx');
+        });
+      },
+
+      ctHoneypot: function () {
+        var body = new FormData();
+        body.append('name', 'testsite');
+        body.append('email', 'testsite@example.com');
+        body.append('subject', 'panel self-check');
+        body.append('message', 'This submission fills the honeypot on purpose and must be refused.');
+        body.append('website', 'https://bot.example');
+
+        return fetchTest('/contact/send', { method: 'POST', body: body }).then(function (r) {
+          if (!r.ok) return netFail();
+          // 422 is the spam refusal. 429 means the rate limiter got
+          // there first, which is also the form defending itself
+          // and is not a failure of this check.
+          if (r.status === 422 || r.status === 429) {
+            return { status: 'pass', code: r.status, ping: r.ping };
+          }
+          return expectFail(r, '422 / 429');
         });
       },
 

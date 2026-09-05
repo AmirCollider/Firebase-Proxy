@@ -46,6 +46,7 @@ import { handleNotFound } from './Pages/NotFound.js'
 import { handleRobots, handleSitemap } from './Pages/Sitemap.js'
 import { handleSiteIcon, handleFavicon, handleWebManifest } from './Pages/Icon.js'
 import { handleAbout } from './Pages/About.js'
+import { handleResume } from './Pages/Resume.js'
 import { handleDonate, handleDonateCreate, handleDonateThanks } from './Pages/Donate.js'
 import { handleGamesIndex } from './Pages/Games.js'
 import { handleUserProfile } from './Pages/PlayerProfile.js'
@@ -60,6 +61,7 @@ import { handleReleaseNotes } from './Pages/ReleaseNotes.js'
 import { handleUnityDocSnap } from './Pages/UnityDocSnap.js'
 import { handleUnityDirectTmp } from './Pages/UnityDirectTmp.js'
 import { handleTools } from './Pages/Tools.js'
+import { handleContact, handleContactSend } from './Pages/Contact.js'
 import { handleDocSnapVideo } from './Pages/Video.js'
 import { handleOrderHelp, handleOrderLookup } from './Pages/OrderHelp.js'
 import { handleCheckoutTest } from './Pages/CheckoutTest.js'
@@ -200,6 +202,14 @@ const ROUTES = [
   // biography to.
   { path: '/about', method: 'GET', handler: handleAbout },
 
+  // The same person, formally. /about is written for somebody who
+  // liked a game and wondered who made it; this is written for
+  // somebody deciding whether to hire or commission. Two registers,
+  // one set of facts - see the note at the top of Pages/Resume.js
+  // for what is deliberately NOT on it.
+  { path: '/resume', method: 'GET', handler: handleResume },
+  { path: '/cv', method: 'GET', handler: handleResume },
+
   // The games catalogue, and the answer to /tools. It has to be
   // registered before the /games/:gameId/* API routes read like a
   // conflict - they are not one: those all carry a second path
@@ -245,6 +255,18 @@ const ROUTES = [
   // shipped C# constants that cannot be updated once somebody has
   // the package installed.
   { path: '/tools', method: 'GET', handler: handleTools },
+
+  // Reaching the owner from the site itself. The message lands in
+  // the same mailbox CONFIG.MAIL.PATH reads, beside the mail that
+  // arrived over SMTP - which is the point: one place to look.
+  //
+  // /contact/send is a POST and is deliberately NOT in the
+  // sitemap or crawlable. It is rate limited per address, scored
+  // by Mail/Spam.js, and checked against the same blocklist the
+  // inbound handler uses - otherwise this form would be the
+  // documented way around a block.
+  { path: '/contact', method: 'GET', handler: handleContact },
+  { path: '/contact/send', method: 'POST', handler: handleContactSend },
 
   // Unity DirectTMP. Free and MIT, so one GET is the whole surface.
   // Both paths are registered because the short one is what people
@@ -302,16 +324,23 @@ const ROUTES = [
   // rather than twenty routes, because every action needs the same
   // authorisation check and a single door cannot be forgotten on
   // the twenty-first.
-  // The mailbox. A third panel, its own password (MailPassword),
-  // its own cookie scoped Path=/mail. It is not linked from
-  // anywhere on the site and robots.txt disallows it, same as the
-  // other two - the difference is what is behind it: real
-  // correspondence, and the ability to send mail as the domain.
-  { path: '/mail', method: 'GET', handler: handleMail },
-  { path: '/mail/login', method: 'GET', handler: handleMailLogin },
-  { path: '/mail/login', method: 'POST', handler: handleMailLoginPost },
-  { path: '/mail/logout', method: 'POST', handler: handleMailLogout },
-  { path: '/mail/api', method: 'POST', handler: handleMailApi },
+  // The mailbox. A third panel, its own password
+  // (TheEmailPassword), its own cookie scoped to its own path. It
+  // is not linked from anywhere on the site and robots.txt
+  // disallows it, same as the other two - the difference is what
+  // is behind it: real correspondence, and the ability to send
+  // mail as the domain.
+  //
+  // The path comes from CONFIG.MAIL.PATH and is deliberately NOT
+  // "/mail": that is the first word an opportunistic scanner
+  // tries, along with /webmail and /admin. The password is what
+  // protects the panel; the address just keeps its login form out
+  // of every drive-by sweep.
+  { path: CONFIG.MAIL.PATH, method: 'GET', handler: handleMail },
+  { path: CONFIG.MAIL.PATH + '/login', method: 'GET', handler: handleMailLogin },
+  { path: CONFIG.MAIL.PATH + '/login', method: 'POST', handler: handleMailLoginPost },
+  { path: CONFIG.MAIL.PATH + '/logout', method: 'POST', handler: handleMailLogout },
+  { path: CONFIG.MAIL.PATH + '/api', method: 'POST', handler: handleMailApi },
 
   { path: '/thegod', method: 'GET', handler: handleTheGod },
   { path: '/thegod/login', method: 'GET', handler: handleTheGodLogin },
@@ -457,7 +486,7 @@ function matchRoute(path, method) {
 // ==========================================
 const CANONICAL_EXEMPT = [
   '/oauth/', '/auth/', '/database/', '/games/', '/profile/',
-  '/assets/', '/video/', '/thegod', '/testsite', '/mail', '/checkout/'
+  '/assets/', '/video/', '/thegod', '/testsite', CONFIG.MAIL.PATH, '/checkout/'
 ]
 
 // ==========================================

@@ -94,7 +94,12 @@ const NO_LANG_ROUTING = [
   '/profile/',
   '/thegod',
   '/testsite',
-  '/mail',
+
+  // The mailbox. Must match CONFIG.MAIL.PATH - written literally
+  // because this module is the language layer and imports nothing,
+  // deliberately: everything else imports IT.
+  '/domail2',
+
   '/checkout',
   '/order',
   '/license',

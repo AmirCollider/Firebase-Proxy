@@ -42,7 +42,7 @@
 // ==========================================
 
 import { logInfo, logWarning } from '../Core/Logging.js'
-import { db, storeMessage, mailTableReady } from './Store.js'
+import { db, storeMessage, mailTableReady, isBlocked, noteBlockHit } from './Store.js'
 
 
 // ==========================================
@@ -393,6 +393,29 @@ export async function handleInboundEmail(message, env) {
   const envelopeFrom = String(message.from || '').toLowerCase()
   const envelopeTo = String(message.to || '').toLowerCase()
 
+  // ==========================================
+  // The blocklist, checked against the ENVELOPE address.
+  //
+  // Not the From: header, which the sender writes and can set to
+  // anything - blocking on it would be blocking a string the
+  // person being blocked controls.
+  //
+  // The message is dropped rather than rejected. Rejecting would
+  // bounce it, and a bounce tells a spammer the address is real
+  // and tells a wrongly-blocked person their mail failed. Silently
+  // accepting and discarding is the behaviour every mail system
+  // uses here, and the hit counter is what makes it auditable.
+  // ==========================================
+  const block = await isBlocked(database, envelopeFrom)
+  if (block) {
+    await noteBlockHit(database, block.id)
+    logInfo('Inbound mail dropped by a block rule', {
+      from: envelopeFrom,
+      rule: block.kind + ':' + block.value
+    })
+    return
+  }
+
   const id = await storeMessage(database, {
     direction: 'in',
     from: envelopeFrom || parsed.from,
@@ -405,6 +428,7 @@ export async function handleInboundEmail(message, env) {
     messageId: parsed.messageId,
     inReplyTo: parsed.inReplyTo,
     status: 'received',
+    source: 'email',
     truncated: parsed.truncated,
     rawExcerpt: parsed.rawExcerpt,
     createdAt: Date.now()
