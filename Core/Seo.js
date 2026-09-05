@@ -830,19 +830,60 @@ export function videoGameLd({
 // for a trailer published last year is the kind of fact that
 // outlives the page that carried it.
 // ==========================================
-export function videoObjectLd({ name, description, embedUrl, thumbnail, lang } = {}) {
-  if (!name || !embedUrl) return null
+export function videoObjectLd({
+  name, description, embedUrl, contentUrl, thumbnail, lang,
+  uploadDate, durationSeconds
+} = {}) {
+  // A video is identified by somewhere it can be WATCHED. An
+  // embedded player (embedUrl) and a file this site serves itself
+  // (contentUrl) are both that; a node carrying neither describes
+  // nothing a crawler can index, so it is dropped rather than
+  // emitted empty.
+  if (!name || (!embedUrl && !contentUrl)) return null
 
+  // @context, because this node is now emitted as a block of its
+  // own as well as nested inside videoGameLd. A nested node
+  // inherits its parent's context and a top-level one does not -
+  // and a top-level node without it is not structured data at all,
+  // just an object a parser skips. Carrying it in both positions
+  // is valid JSON-LD and is the version that cannot be wrong.
   const node = {
+    '@context': 'https://schema.org',
     '@type': 'VideoObject',
     name,
-    embedUrl,
     publisher: { '@id': absoluteUrl('/#organization') }
   }
+
+  if (embedUrl) node.embedUrl = embedUrl
+
+  // The file itself, absolute. This is the field that matters for a
+  // self-hosted clip: Google will not index a video it cannot fetch,
+  // and for an MP4 served off this domain contentUrl is the only
+  // thing that tells it where the bytes are. See the note beside
+  // "/video/" in Pages/Sitemap.js for the other half of that.
+  if (contentUrl) node.contentUrl = absoluteUrl(contentUrl)
 
   if (description) node.description = description
   if (thumbnail) node.thumbnailUrl = absoluteUrl(thumbnail)
   if (lang) node.inLanguage = resolveLang(lang)
+
+  // uploadDate is required for a video rich result and, as the note
+  // above says, must never be guessed. A caller that knows the real
+  // date passes it; a caller that does not passes nothing and gets
+  // a node that is still valid, just not eligible for the rich
+  // result.
+  if (uploadDate) node.uploadDate = uploadDate
+
+  // ISO 8601, which is the only duration format schema.org accepts.
+  // "PT21S" and not "0:21" - the human form is what the page
+  // prints and is not a duration to a parser.
+  if (Number.isFinite(durationSeconds) && durationSeconds > 0) {
+    const whole = Math.round(durationSeconds)
+    const minutes = Math.floor(whole / 60)
+    const seconds = whole % 60
+    node.duration = 'PT' + (minutes ? minutes + 'M' : '') + seconds + 'S'
+  }
+
   return node
 }
 

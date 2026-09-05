@@ -1097,7 +1097,7 @@ function renderAccount(game, lang, theme, player, owned, record, flash = {}) {
 
   const body = `
     <style>
-      .acc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+      .acc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(120px, 100%),1fr));gap:12px}
       .acc-stat{padding:14px 16px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border)}
       .acc-stat b{display:block;font-size:1.25em;font-weight:800;margin-block-end:3px}
       .acc-stat span{font-size:.76em;color:var(--dim)}

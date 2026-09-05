@@ -527,7 +527,7 @@ function metricsStyles(accent, accentRgb) {
 
   .mc-ep-grid {
     margin-top: 14px; display: grid; gap: 9px;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
   }
   .mc-ep-item {
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px;

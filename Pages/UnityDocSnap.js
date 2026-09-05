@@ -46,13 +46,14 @@ import { CONFIG } from '../Config.js'
 import { getPageHead } from '../Core/DesignSystem.js'
 import { createHtmlResponse } from '../Core/Http.js'
 import {
-  VIDEOS as VIDEOS_ALL, VIDEO_LANGS, videosFor, totalSecondsFor, formatDuration
+  VIDEOS as VIDEOS_ALL, VIDEO_LANGS, videosFor, totalSecondsFor, formatDuration,
+  videoPath, isoDuration, PUBLISHED as VIDEOS_PUBLISHED
 } from '../Content/DocSnapVideos.js'
 import { otherTools } from '../Content/ToolsCatalog.js'
 
 import { escapeHtml } from '../Core/Html.js'
 import { chromeScript, themeBootScript } from '../Core/PageChrome.js'
-import { seoHead, breadcrumbLd, softwareApplicationLd, faqPageLd, howToLd } from '../Core/Seo.js'
+import { seoHead, breadcrumbLd, softwareApplicationLd, faqPageLd, howToLd, videoObjectLd } from '../Core/Seo.js'
 import { localizedPath } from '../Core/Locale.js'
 import { siteNavCss, siteBreadcrumb, siteFooter, NAV_I18N } from '../Core/SiteNav.js'
 import { langCookieHeader, parseCookies, resolveRequestLang, resolveRequestTheme } from '../Core/RequestContext.js'
@@ -220,6 +221,8 @@ const I18N = {
     faq: [
       ['اشتراک ماهانه است؟',
        'نه. یک بار می‌خری و مال خودت است. بروزرسانی‌های ۱.x رایگان است.'],
+      ['متن‌باز است؟ روی گیت‌هاب که هست.',
+       'نه. مخزن گیت‌هاب پکیج را پخش می‌کند، ولی چیزی که داخلش است یک اسمبلی کامپایل‌شده است زیر لایسنس خودش، نه سورس. تا تگ v1.0.3 سورس با لایسنس MIT منتشر می‌شد و آن اجازه برای هر نسخه‌ای که آن موقع گرفته شده همچنان برقرار است؛ از آن به بعد دیگر نه. اگر دنبال یک ابزار یونیتی متن‌باز از من می‌گردی، Unity DirectTMP کاملاً MIT است.'],
       ['فرق Plus و Pro دقیقاً چیست؟',
        'نسخه‌ی Plus دو تا قابلیت دارد: خروجی آماده‌ی هوش مصنوعی و صفحه‌ی تغییرات. نسخه‌ی Pro علاوه بر این‌ها تاریخچه‌ی نامحدود نسخه‌ها، بروزرسانی افزایشی، اتوماسیون CI، کپی فایل‌ها، بک‌آپ کل پروژه، مدیریت و حذف اسنپ‌شات‌ها و لوگوی اختصاصی را هم دارد. اگر فقط آن دو تا را می‌خواهی، Plus دقیقاً برای تو ساخته شده.'],
       ['بعداً می‌توانم از Plus به Pro ارتقا بدهم؟',
@@ -338,6 +341,8 @@ const I18N = {
     popular: 'Most popular',
 
     faq: [
+      ['Is it open source? It is on GitHub.',
+       'No. The GitHub repository distributes the package, but what is inside it is a compiled assembly under its own licence, not the source. Everything up to and including the v1.0.3 tag was published as source under the MIT licence, and that grant still covers every copy obtained under it — it does not extend to the releases after it. If it is an open-source Unity tool of mine you are after, Unity DirectTMP is MIT end to end.'],
       ['Is it a subscription?',
        'No. Buy once, keep it. All 1.x updates are included.'],
       ['What exactly is the difference between Plus and Pro?',
@@ -458,6 +463,8 @@ const I18N = {
     popular: '人気',
 
     faq: [
+      ['オープンソースですか? GitHub にありますが。',
+       'いいえ。GitHub のリポジトリはパッケージを配布していますが、その中身はソースではなく、独自ライセンスのコンパイル済みアセンブリです。v1.0.3 タグまではソースを MIT ライセンスで公開しており、その許諾は当時入手されたコピーには今も有効ですが、それ以降のリリースには及びません。オープンソースの Unity ツールをお探しでしたら、Unity DirectTMP は全体が MIT です。'],
       ['サブスクリプションですか?',
        'いいえ。買い切りです。1.x のアップデートはすべて含まれます。'],
       ['Plus と Pro の違いは何ですか?',
@@ -735,10 +742,19 @@ function icon(name) {
 // ==========================================
 function renderTopbar(lang) {
   const p = I18N[lang]
+
+  // Links, not buttons - see the long note beside the same
+  // switcher in Core/SiteNav.js. This page has its own top bar
+  // rather than the shared one, so it had its own copy of the bug:
+  // the English and Japanese versions of the DocSnap page were
+  // reachable from nowhere on this site.
   const buttons = Object.keys(I18N).map(code =>
-    '<button type="button" onclick="acSetLang(\'' + code + '\')" lang="' + code + '"'
-    + ' aria-pressed="' + (code === lang ? 'true' : 'false') + '">'
-    + escapeHtml(I18N[code].langName) + '</button>'
+    '<a href="' + escapeHtml(localizedPath('/unity-docsnap', code)) + '"'
+    + ' onclick="return acSetLang(\'' + code + '\', event)" lang="' + code + '"'
+    + ' hreflang="' + code + '"'
+    + ' aria-pressed="' + (code === lang ? 'true' : 'false') + '"'
+    + (code === lang ? ' aria-current="true"' : '') + '>'
+    + escapeHtml(I18N[code].langName) + '</a>'
   ).join('')
 
   return `
@@ -931,17 +947,28 @@ function renderVideos(p, lang) {
       ${escapeHtml(I18N[code].langName)}
     </button>`).join('')
 
+  // Anchors, not buttons, and the href is the clip's own address.
+  //
+  // Only the first clip's URL used to exist in the markup - the
+  // other nine were strings inside the player script, reachable
+  // only by running it. A crawler therefore found one video on a
+  // page that has ten, which is most of why nine of them were
+  // never indexed. As anchors they are ten links a crawler can
+  // follow, the player still intercepts the click, and a reader
+  // with no JavaScript gets the file itself rather than a dead
+  // button.
   const items = clips.map((clip, index) => `
     <li>
-      <button type="button" class="vitem${index === 0 ? ' is-on' : ''}" data-id="${clip.id}"
-              aria-current="${index === 0 ? 'true' : 'false'}">
+      <a class="vitem${index === 0 ? ' is-on' : ''}" data-id="${clip.id}"
+         href="${escapeHtml(videoPath(startLang, clip))}"
+         aria-current="${index === 0 ? 'true' : 'false'}">
         <span class="vnum">${String(clip.id).padStart(2, '0')}</span>
         <span class="vtext">
           <b>${escapeHtml(clip.title[lang])}</b>
           <small>${escapeHtml(clip.blurb[lang])}</small>
         </span>
         <span class="vdur" dir="ltr">${formatDuration(clip.seconds)}</span>
-      </button>
+      </a>
     </li>`).join('')
 
   const first = clips[0]
@@ -980,6 +1007,55 @@ function renderVideos(p, lang) {
         <p>${escapeHtml(p.videoNoteBody)}</p>
       </div>
     </section>`
+}
+
+
+// ==========================================
+// videoGraph
+// Every clip in this language, as structured data.
+//
+// The clips are the strongest thing on this page and not one of
+// them was ever indexed. Three separate reasons, all of which had
+// to be fixed together:
+//
+//   1. robots.txt disallowed /video/, so Googlebot was forbidden
+//      from fetching the files at all. See Pages/Sitemap.js.
+//   2. Nothing on the page said "this is a video". A <video> tag
+//      with a src is a media element to a parser, not a work with
+//      a title, a runtime and a subject - so there was nothing to
+//      put in an index even once the file was reachable.
+//   3. Only the FIRST clip is in the HTML. The other nine are
+//      swapped into the same element by the player script, so a
+//      crawler that runs no JavaScript sees one video where there
+//      are ten.
+//
+// This fixes (2) and (3) together: one VideoObject per clip, each
+// naming its own contentUrl, so all ten are declared in the markup
+// whatever the player is currently showing.
+//
+// The thumbnail is the shared DocSnap card image rather than a
+// still from each clip. Nothing generates per-clip stills - the
+// page itself uses a media fragment to paint its poster frame,
+// which is a browser trick and not a URL a crawler can be handed.
+// A shared thumbnail is a weaker result than a real still, and it
+// is what makes the difference between an eligible video and an
+// ineligible one.
+// ==========================================
+function videoGraph(lang) {
+  // The clip language the page opens on, resolved the same way
+  // renderVideos() resolves it - so the structured data describes
+  // the set the reader is actually looking at.
+  const clipLang = VIDEO_LANGS.indexOf(lang) !== -1 ? lang : 'en'
+
+  return videosFor(clipLang).map(clip => videoObjectLd({
+    name: clip.title[lang],
+    description: clip.blurb[lang],
+    contentUrl: videoPath(clipLang, clip),
+    thumbnail: CONFIG.AMIR_LOGO,
+    lang: clipLang,
+    uploadDate: VIDEOS_PUBLISHED,
+    durationSeconds: clip.seconds
+  })).filter(Boolean)
 }
 
 
@@ -1311,6 +1387,14 @@ function renderPage(lang, theme) {
         ],
 
         repo: REPO_URL,
+
+        // Said in the machine-readable node as well as in the FAQ.
+        // codeRepository above points at a github.com address, and
+        // on its own that is the single strongest signal a crawler
+        // has that a package is open source. It is not, so the
+        // licence that actually governs it is named right beside
+        // the repository rather than left to be inferred from it.
+        license: REPO_URL + '/blob/main/LICENSE',
         downloadUrl: REPO_URL,
         installUrl: GIT_URL,
         softwareHelp: REPO_URL + '#readme',
@@ -1331,7 +1415,11 @@ function renderPage(lang, theme) {
         tool: 'Unity Package Manager',
         steps: [p.installStep1, p.installStep2, p.installStep3 + ' ' + GIT_URL, p.installStep4]
       }),
-      faqPageLd(p.faq, lang)
+      faqPageLd(p.faq, lang),
+
+      // Spread, not pushed as one node: the graph is a flat list
+      // and ten clips are ten VideoObjects.
+      ...videoGraph(lang)
     ]
   })}
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1569,16 +1657,20 @@ function css() {
       display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px;
       background: var(--surface); border: 1px solid var(--border-strong);
     }
-    .seg button {
+    .seg button,
+    .seg a {
       border: 0; cursor: pointer; padding: 6px 13px; border-radius: 999px; font: inherit;
       font-size: 0.82em; font-weight: 700; color: var(--text-dim); background: transparent;
       transition: color .16s ease, background .16s ease;
     }
-    .seg button:hover { color: var(--text); }
+    .seg a { text-decoration: none; display: inline-block; line-height: 1.5; }
+    .seg button:hover,
+    .seg a:hover { color: var(--text); text-decoration: none; }
     /* Filled, not merely a paler shade of the bar it sits in.
        Coral is the language answer in the tool too, so the
        control a reader already knows behaves the same here. */
-    .seg button[aria-pressed="true"] {
+    .seg button[aria-pressed="true"],
+    .seg a[aria-pressed="true"] {
       color: #fff; background: linear-gradient(135deg, ${CORAL}, ${CORAL_SOFT});
       box-shadow: 0 3px 10px rgba(255, 117, 147, .4);
     }
@@ -1666,7 +1758,7 @@ function css() {
       transform-origin: 100% 50%;
     }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
@@ -1724,8 +1816,10 @@ function css() {
       display: flex; align-items: center; gap: 11px; width: 100%; text-align: start;
       padding: 9px 10px; border: 0; border-radius: 999px; cursor: pointer;
       font: inherit; color: var(--text); background: transparent;
+      text-decoration: none;
       transition: background .15s ease, transform .15s ease;
     }
+    .vitem:hover { text-decoration: none; }
     .vitem:hover { background: var(--surface-2); transform: translateX(2px); }
     [dir="rtl"] .vitem:hover { transform: translateX(-2px); }
     .vitem.is-on { background: color-mix(in srgb, var(--lav) 18%, transparent); }
@@ -1878,7 +1972,18 @@ function css() {
     /* ---------- install ---------- */
     .install-card { margin-block-start: 16px; }
     .steps { list-style: none; counter-reset: step; display: grid; gap: 13px; }
-    .steps li { display: flex; align-items: flex-start; gap: 12px; }
+
+    /* min-width: 0 on the step and on its text column, and it is
+       not cosmetic. A grid item and a flex item both default to
+       min-width: auto, which is a floor at their content's
+       minimum - and the content here is the git URL box below,
+       whose flex-basis made that floor 300px wide. On a phone
+       that floor was wider than the screen, so the whole page
+       picked up 110px of sideways scroll and, being RTL, opened
+       already displaced. Nothing on the page looked broken; it
+       just would not sit still. */
+    .steps li { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+    .steps li > * { min-width: 0; }
     .steps li::before {
       counter-increment: step; content: counter(step);
       flex: none; width: 26px; height: 26px; border-radius: 50%;
@@ -1886,9 +1991,17 @@ function css() {
       color: #fff; margin-block-start: 3px;
       background: linear-gradient(135deg, ${LAV}, ${LAV_SOFT});
     }
-    .copy-row { display: flex; align-items: stretch; gap: 8px; margin-block-start: 10px; flex-wrap: wrap; }
+    .copy-row { display: flex; align-items: stretch; gap: 8px; margin-block-start: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
     .copy-url {
-      flex: 1 1 300px; min-width: 0; font-family: var(--font-mono);
+      /* min(100%, 300px) rather than a flat 300px. The basis is
+         what a flex item reports as its smallest useful width, so
+         a flat length is a hard floor no ancestor can shrink past
+         - the URL box would rather push the page sideways than
+         get narrower than 300px. Bounded by the container, it
+         asks for 300px where there is room and takes the line to
+         itself where there is not, which is what the wrap was
+         always for. */
+      flex: 1 1 min(100%, 300px); min-width: 0; font-family: var(--font-mono);
       font-size: 0.84em; padding: 11px 14px; border-radius: var(--radius-sm);
       direction: ltr; text-align: start;
       background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
@@ -2234,10 +2347,14 @@ function script(lang, p) {
           .replace('__I__', String(ids.indexOf(id) + 1))
           .replace('__N__', String(ids.length));
 
-        Array.prototype.forEach.call(list.querySelectorAll('.vitem'), function (button) {
-          var on = Number(button.getAttribute('data-id')) === id;
-          button.classList.toggle('is-on', on);
-          button.setAttribute('aria-current', on ? 'true' : 'false');
+        Array.prototype.forEach.call(list.querySelectorAll('.vitem'), function (link) {
+          var on = Number(link.getAttribute('data-id')) === id;
+          link.classList.toggle('is-on', on);
+          link.setAttribute('aria-current', on ? 'true' : 'false');
+
+          // The href follows the clip language, so the link a
+          // reader copies is the clip they are looking at.
+          link.setAttribute('href', '/video/' + vlang + '/' + link.getAttribute('data-id'));
         });
       }
 
@@ -2246,11 +2363,12 @@ function script(lang, p) {
 
         list.innerHTML = ids.map(function (id) {
           var meta = META[id];
-          return '<li><button type="button" class="vitem" data-id="' + id + '" aria-current="false">'
+          return '<li><a class="vitem" data-id="' + id + '" aria-current="false"'
+            + ' href="/video/' + vlang + '/' + id + '">'
             + '<span class="vnum">' + pad(id) + '</span>'
             + '<span class="vtext"><b>' + esc(meta.t) + '</b><small>' + esc(meta.b) + '</small></span>'
             + '<span class="vdur" dir="ltr">' + meta.d + '</span>'
-            + '</button></li>';
+            + '</a></li>';
         }).join('');
 
         ledeEl.textContent = TXT.lede
@@ -2261,9 +2379,18 @@ function script(lang, p) {
       }
 
       function bind() {
-        Array.prototype.forEach.call(list.querySelectorAll('.vitem'), function (button) {
-          button.addEventListener('click', function () {
-            select(Number(button.getAttribute('data-id')), true);
+        Array.prototype.forEach.call(list.querySelectorAll('.vitem'), function (link) {
+          link.addEventListener('click', function (event) {
+            // The href is real, and it is what a crawler and a
+            // reader without JavaScript follow. With the player
+            // running, staying on the page is the better answer -
+            // but only for a plain left click: a middle click or
+            // ctrl-click means "open the file separately" and is
+            // left alone.
+            if (event.defaultPrevented) return;
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            select(Number(link.getAttribute('data-id')), true);
           });
         });
       }

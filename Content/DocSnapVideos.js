@@ -39,6 +39,25 @@ export const VIDEO_LANGS = ['en', 'ja', 'fa']
 
 
 // ==========================================
+// When the clips were published.
+//
+// A constant, and deliberately not a computed date, for exactly
+// the reason CONFIG.SITEMAP_LASTMOD is one: uploadDate is a fact a
+// crawler either trusts or learns to ignore, and a set of clips
+// that claims to have been published today, again tomorrow, is the
+// second kind. Google requires the field for a video rich result
+// and quietly drops a VideoObject without it - which is one of the
+// reasons none of these were ever indexed.
+//
+// Whoever re-records the set moves this line in the same commit.
+// One date for the whole set is honest here: they were recorded in
+// one sitting, and a per-clip date nobody maintains is worse than
+// one date somebody does.
+// ==========================================
+export const PUBLISHED = '2026-08-20'
+
+
+// ==========================================
 // R2 layout
 // Where each language's files sit inside the amircolliderr2
 // bucket.
@@ -297,4 +316,34 @@ export function objectCandidatesFor(lang, video) {
 // ==========================================
 export function prefixCandidatesFor(lang) {
   return PREFIXES[lang] || []
+}
+
+
+// ==========================================
+// videoPath
+// The address this clip is served at.
+//
+// One function rather than three template literals, because the
+// page, the structured data and the sitemap all have to name the
+// SAME url. A VideoObject whose contentUrl points somewhere the
+// sitemap does not is two videos as far as a crawler is concerned,
+// and neither of them resolves.
+// ==========================================
+export function videoPath(lang, video) {
+  return '/video/' + lang + '/' + (video && video.id != null ? video.id : video)
+}
+
+
+// ==========================================
+// isoDuration
+// Seconds as schema.org wants them: PT21S, PT2M30S.
+//
+// formatDuration() above is the human form - "0:21" - and the two
+// are not interchangeable. A parser handed "0:21" reads no
+// duration at all.
+// ==========================================
+export function isoDuration(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0))
+  const minutes = Math.floor(total / 60)
+  return 'PT' + (minutes ? minutes + 'M' : '') + (total % 60) + 'S'
 }

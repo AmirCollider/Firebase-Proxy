@@ -568,7 +568,7 @@ function getGamesCardsCSS() {
   /* ---------- primary actions ---------- */
   .gc-actions {
     display: grid; gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   }
   .gc-act {
     display: flex; align-items: center; gap: 11px;
@@ -628,7 +628,7 @@ function getGamesCardsCSS() {
      a responsive grid so three stores do not become three
      full-width bars pushing the card to twice its height. */
   .gc-stores { display: grid; gap: 10px; margin-block-start: 12px; }
-  .gc-stores--many { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .gc-stores--many { grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); }
 
   .gc-store {
     display: flex; align-items: center; gap: 12px;

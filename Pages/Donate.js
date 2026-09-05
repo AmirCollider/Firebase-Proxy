@@ -537,7 +537,7 @@ function donateCss() {
     }
     [dir="rtl"] .dn-sec > h2::after { background: linear-gradient(270deg, var(--border), transparent); }
 
-    .dn-why { display: grid; gap: 11px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .dn-why { display: grid; gap: 11px; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
     .dn-why div {
       display: flex; align-items: flex-start; gap: 13px;
       padding: 16px 18px; border-radius: 16px;
@@ -731,7 +731,7 @@ function createDonatePage(lang, theme, { error = '', amount = '' } = {}) {
   <style>${siteNavCss()}${donateCss()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: code, accent: '#ff8fb1' })}
+  ${siteHeader({ lang: code, accent: '#ff8fb1', path: '/donate' })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: code, trail })}
     <main id="main">
@@ -838,7 +838,7 @@ function createThanksPage(lang, theme) {
   <style>${siteNavCss()}${donateCss()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: code, accent: '#ff8fb1' })}
+  ${siteHeader({ lang: code, accent: '#ff8fb1', path: '/donate' })}
   <div class="wrap">
     <main id="main" class="dn-thanks">
       <div class="dn-jar" aria-hidden="true">🎁</div>

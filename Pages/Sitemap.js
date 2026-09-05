@@ -20,14 +20,37 @@ import { CONFIG, LANGUAGES, GAME_STATUS } from '../Config.js'
 import { absoluteUrl, siteOrigin } from '../Core/Seo.js'
 import { localizedPath, isLangRoutable } from '../Core/Locale.js'
 import { db, listVersions } from '../Games/Store.js'
+import {
+  VIDEO_LANGS, videosFor, videoPath, PUBLISHED as VIDEOS_PUBLISHED
+} from '../Content/DocSnapVideos.js'
 
 
 // Paths a crawler must never index: operator panels, anything that
 // takes a credential, the machine API surface, and the checkout -
 // where an indexed step is a stale invoice in somebody's results.
+//
+// "/video/" USED TO BE IN THIS LIST, and taking it out is the whole
+// reason none of the Unity DocSnap clips were ever indexed. The
+// reasoning for banning it was crawl budget: ten MP4s per language
+// is a lot of bytes to hand a crawler that only reads pages. But a
+// video is not indexed from the page that embeds it - Google has to
+// FETCH the file to confirm it exists, read its duration and pull a
+// still out of it. Disallowing the file meant every VideoObject
+// pointing at it described a video Google was not allowed to look
+// at, so it indexed none of them. The clips are the best thing on
+// the DocSnap page and they were invisible.
+//
+// The Allow line further down is now explicit rather than implied,
+// for the same reason /assets/ is.
 const DISALLOW = [
   '/thegod',
   '/testsite',
+
+  // The mailbox. Its pages are noindex too, but a crawler has to
+  // FETCH a page to read that - and the one behind this path is a
+  // password prompt guarding correspondence.
+  '/mail',
+
   '/checkout',
   '/order',
   '/license',
@@ -36,7 +59,6 @@ const DISALLOW = [
   '/database/',
   '/profile/',
   '/games/',
-  '/video/',
 
   // The donation flow's inner steps, not the page itself. The
   // trailing slash is what draws that line: '/donate' is a page
@@ -44,6 +66,39 @@ const DISALLOW = [
   // is a receipt.
   '/donate/'
 ]
+
+
+// ==========================================
+// The Unity DocSnap clips, as sitemap video entries.
+//
+// The page declares the same clips as VideoObject nodes, and this
+// is the other half of the pair: structured data tells a crawler
+// what a video IS once it is looking at the page, and a video
+// sitemap tells it the videos exist at all. Search Console reports
+// on the sitemap form specifically, which is what makes a clip
+// that never gets indexed diagnosable rather than a mystery.
+//
+// One entry per clip in the language of the URL being written, so
+// the Japanese page's entries point at the Japanese recordings.
+// A language with no recording of its own falls back to English,
+// exactly as the page's player does.
+// ==========================================
+function videoEntries(lang) {
+  const clipLang = VIDEO_LANGS.indexOf(lang) !== -1 ? lang : 'en'
+
+  return videosFor(clipLang).map(clip => [
+    '    <video:video>',
+    '      <video:thumbnail_loc>' + xmlEscape(absoluteUrl(CONFIG.AMIR_LOGO)) + '</video:thumbnail_loc>',
+    '      <video:title>' + xmlEscape(clip.title[lang] || clip.title.en) + '</video:title>',
+    '      <video:description>' + xmlEscape(clip.blurb[lang] || clip.blurb.en) + '</video:description>',
+    '      <video:content_loc>' + xmlEscape(absoluteUrl(videoPath(clipLang, clip))) + '</video:content_loc>',
+    '      <video:duration>' + clip.seconds + '</video:duration>',
+    '      <video:publication_date>' + VIDEOS_PUBLISHED + '</video:publication_date>',
+    '      <video:family_friendly>yes</video:family_friendly>',
+    '      <video:live>no</video:live>',
+    '    </video:video>'
+  ].join('\n')).join('\n')
+}
 
 
 function xmlEscape(value) {
@@ -75,7 +130,7 @@ export function indexablePaths(games = {}, options = {}) {
     { loc: '/about', priority: '0.9', changefreq: 'monthly', image: CONFIG.AMIR_LOGO, title: 'AmirCollider' },
     { loc: '/games', priority: '0.9', changefreq: 'weekly' },
     { loc: '/tools', priority: '0.9', changefreq: 'weekly' },
-    { loc: '/unity-docsnap', priority: '0.9', changefreq: 'weekly' },
+    { loc: '/unity-docsnap', priority: '0.9', changefreq: 'weekly', videos: true },
     { loc: '/unity-directtmp', priority: '0.9', changefreq: 'weekly' },
     { loc: '/donate', priority: '0.6', changefreq: 'monthly' },
     { loc: '/release-notes', priority: '0.6', changefreq: 'weekly' },
@@ -241,6 +296,7 @@ export function handleRobots(url, request, gameId, requestId, GAMES) {
     // looking for a rule about itself, and an explicit Allow is
     // the difference between "not forbidden" and "invited".
     'Allow: /assets/',
+    'Allow: /video/',
     'Allow: /icon.svg',
     'Allow: /favicon.ico',
     'Allow: /',
@@ -326,6 +382,12 @@ export async function handleSitemap(url, request, gameId, requestId, GAMES, env)
       '    <changefreq>' + entry.changefreq + '</changefreq>',
       '    <priority>' + entry.priority + '</priority>',
       image,
+
+      // Same reasoning as the image element above: a video belongs
+      // to the URL it is declared inside, so the Japanese entry
+      // carries the Japanese recordings and not a copy of the
+      // English ones.
+      entry.videos ? videoEntries(code) : '',
       '  </url>'
     ].filter(Boolean).join('\n'))
   }).join('\n')
@@ -333,7 +395,8 @@ export async function handleSitemap(url, request, gameId, requestId, GAMES, env)
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 ${entries}
 </urlset>
 `

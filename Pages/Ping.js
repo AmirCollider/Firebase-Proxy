@@ -554,7 +554,7 @@ function pingStyles(accent, accentRgb) {
 
   .pg-stats {
     display: grid; gap: 12px; margin-bottom: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   }
   .pg-stat {
     background: var(--surface); border: 1px solid var(--border);
@@ -572,7 +572,7 @@ function pingStyles(accent, accentRgb) {
 
   .pg-grid {
     display: grid; gap: 16px; margin-bottom: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   }
   .pg-card h3 {
     display: flex; align-items: center; gap: 9px; font-size: 1rem;

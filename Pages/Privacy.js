@@ -756,7 +756,18 @@ function getPrivacyCSS() {
     .contact-list li:last-child { border-block-end: 0; }
     .contact-list .c-ic { color: color-mix(in srgb, var(--brand) 55%, var(--text)); flex-shrink: 0; }
     .contact-list .c-key { color: var(--text-dim); font-weight: 600; }
-    .contact-list .c-val { margin-inline-start: auto; font-weight: 600; text-align: end; }
+    /* The values in this list are single unbreakable tokens - an
+       Android package id, a store URL, an email address - and a
+       word with no space in it does not wrap on its own. Left to
+       default rules "com.AmirColliderGames.NeonKatana" laid out at
+       its full 285px inside a 202px cell and pushed the policy
+       page 36px wider than a small phone. anywhere lets the break
+       happen mid-token, which is the right answer for a value
+       nobody reads as prose. */
+    .contact-list .c-val {
+      margin-inline-start: auto; font-weight: 600; text-align: end;
+      min-width: 0; overflow-wrap: anywhere;
+    }
     a { color: color-mix(in srgb, var(--brand) 55%, var(--text)); text-decoration: none; font-weight: 600; }
     a:hover { text-decoration: underline; }
 
@@ -1033,7 +1044,7 @@ function createPrivacyPage(game, gameId, baseUrl, lang, theme, { path = '/privac
   <style>${siteNavCss()}${getPrivacyCSS()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved })}
+  ${siteHeader({ lang: resolved, path })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">

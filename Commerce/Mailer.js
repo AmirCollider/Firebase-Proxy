@@ -15,15 +15,46 @@ import {
 // senderFor
 // The From address, and the name in front of it.
 // ==========================================
-function senderFor(env) {
-  const address = (env && env.DOCSNAP_MAIL_FROM) || ''
-  const name = (env && env.DOCSNAP_MAIL_FROM_NAME) || 'AmirCollider'
+function senderFor(env, message) {
+  // A message may name its own sender. The /mail panel does, so it
+  // can send as CONFIG.MAIL.ADDRESS rather than as whatever the
+  // checkout's DOCSNAP_MAIL_FROM happens to be - the two are
+  // allowed to differ, and on this deployment they do.
+  //
+  // Everything that does NOT pass one keeps the exact behaviour it
+  // had: the checkout's From is still DOCSNAP_MAIL_FROM.
+  const address = (message && message.from) || (env && env.DOCSNAP_MAIL_FROM) || ''
+  const name = (message && message.fromName)
+    || (env && env.DOCSNAP_MAIL_FROM_NAME) || 'AmirCollider'
   return { address, name }
+}
+
+
+// Where a reply goes. Same rule: the caller's choice wins, and
+// the support address is the default it always was.
+function replyToFor(message) {
+  return (message && message.replyTo) || CONFIG.SUPPORT_EMAIL
 }
 
 
 export function mailConfigured(env) {
   return Boolean(env && (env.RESEND_API_KEY || env.BREVO_API_KEY) && env.DOCSNAP_MAIL_FROM)
+}
+
+
+// ==========================================
+// mailSendable
+// Can this deployment send AT ALL?
+//
+// mailConfigured() additionally requires DOCSNAP_MAIL_FROM,
+// because the checkout has no other From to fall back on. The
+// /mail panel supplies its own, so for that path a provider key
+// is the whole requirement - and refusing to send because a
+// checkout-specific secret is unset would be a confusing answer
+// to "why will my email not go".
+// ==========================================
+export function mailSendable(env) {
+  return Boolean(env && (env.RESEND_API_KEY || env.BREVO_API_KEY))
 }
 
 
@@ -46,7 +77,7 @@ async function withTimeout(promiseFactory, ms = 12000) {
 // sendViaResend
 // ==========================================
 async function sendViaResend(env, message) {
-  const sender = senderFor(env)
+  const sender = senderFor(env, message)
 
   const response = await withTimeout(signal => fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -64,7 +95,7 @@ async function sendViaResend(env, message) {
       // no-reply nobody reads. The key email tells the customer
       // to reply to it if something is wrong, and an address
       // that bounces would make that a lie.
-      reply_to: CONFIG.SUPPORT_EMAIL
+      reply_to: replyToFor(message)
     }),
     signal
   }))
@@ -89,7 +120,7 @@ async function sendViaResend(env, message) {
 // sendViaBrevo
 // ==========================================
 async function sendViaBrevo(env, message) {
-  const sender = senderFor(env)
+  const sender = senderFor(env, message)
 
   // Same treatment as Resend: keep the provider's message id, since
   // it is what a deliverability question is answered with.
@@ -103,7 +134,7 @@ async function sendViaBrevo(env, message) {
     body: JSON.stringify({
       sender: { email: sender.address, name: sender.name },
       to: [{ email: message.to }],
-      replyTo: { email: CONFIG.SUPPORT_EMAIL },
+      replyTo: { email: replyToFor(message) },
       subject: message.subject,
       htmlContent: message.html,
       textContent: message.text
@@ -126,7 +157,10 @@ async function sendViaBrevo(env, message) {
 // One delivery attempt, across every configured provider.
 // ==========================================
 export async function sendNow(env, message) {
-  if (!mailConfigured(env)) {
+  // A message naming its own From only needs a provider; one
+  // relying on the default needs the default to exist.
+  const ready = message && message.from ? mailSendable(env) : mailConfigured(env)
+  if (!ready) {
     return { ok: false, error: 'mail_not_configured: set DOCSNAP_MAIL_FROM and RESEND_API_KEY or BREVO_API_KEY' }
   }
 

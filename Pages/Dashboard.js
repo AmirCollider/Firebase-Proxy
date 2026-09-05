@@ -73,7 +73,7 @@ const DASH_I18N = {
     // brand's names are prepended inside seoHead().
     keywords: ['بازی‌ساز مستقل', 'ساخت بازی با یونیتی', 'بازی اندروید رایگان', 'افزونه یونیتی', 'استودیو بازی‌سازی'],
     // The one paragraph of prose above the fold. See renderHero().
-    lede: 'من AmirCollider هستم؛ بازی می‌سازم و برای ساختنشان ابزار می‌نویسم. هرچه ساخته‌ام این‌جاست: بازی‌هایی مثل Neon Katana برای اندروید، و افزونه‌هایی برای ادیتور یونیتی مثل Unity DocSnap و Unity DirectTMP که کارهای تکراری ساخت بازی را کوتاه‌تر می‌کنند. همه‌چیز رایگان قابل امتحان است و کدهای بیشترشان باز است.',
+    lede: 'من AmirCollider هستم؛ بازی می‌سازم و برای ساختنشان ابزار می‌نویسم. هرچه ساخته‌ام این‌جاست: بازی‌هایی مثل Neon Katana برای اندروید، و افزونه‌هایی برای ادیتور یونیتی مثل Unity DocSnap و Unity DirectTMP که کارهای تکراری ساخت بازی را کوتاه‌تر می‌کنند. بازی‌ها رایگان دانلود می‌شوند، DirectTMP رایگان و متن‌باز است، و DocSnap نسخه‌ی رایگان دارد در کنار نسخه‌های خریدنی.',
     subtitle: 'سامانه مدیریت احراز هویت OAuth',
     langName: 'فارسی',
     themeToLight: 'حالت روشن',
@@ -125,7 +125,7 @@ const DASH_I18N = {
     metaTitle: 'AmirCollider — Android and PC games, and Unity editor tools',
     metaDesc: 'AmirCollider builds games for Android, PC and the web such as Neon Katana, and Unity editor extensions such as Unity DocSnap and Unity DirectTMP.',
     keywords: ['indie game developer', 'Unity game development', 'free Android games', 'Unity editor extension', 'game studio'],
-    lede: 'I am AmirCollider — I make games, and I write the tools I need to make them. Everything I have built lives here: games such as Neon Katana for Android, and Unity editor extensions such as Unity DocSnap and Unity DirectTMP that take the repetition out of building them. All of it is free to try, and most of it is open source.',
+    lede: 'I am AmirCollider — I make games, and I write the tools I need to make them. Everything I have built lives here: games such as Neon Katana for Android, and Unity editor extensions such as Unity DocSnap and Unity DirectTMP that take the repetition out of building them. The games are free to download, DirectTMP is free and open source, and DocSnap has a free edition alongside its paid ones.',
     subtitle: 'OAuth authentication management',
     langName: 'English',
     themeToLight: 'Light mode',
@@ -176,7 +176,7 @@ const DASH_I18N = {
     metaTitle: 'AmirCollider — Android ゲームと Unity エディタ拡張',
     metaDesc: 'AmirCollider は Neon Katana などの Android・PC・ウェブ向けゲームと、Unity DocSnap・Unity DirectTMP などの Unity エディタ拡張を開発しています。',
     keywords: ['インディーゲーム開発者', 'Unity ゲーム開発', '無料 Android ゲーム', 'Unity エディタ拡張', 'ゲームスタジオ'],
-    lede: 'AmirCollider です。ゲームを作り、そのために必要なツールも自分で書いています。ここに置いてあるのは、Android 向けの Neon Katana のようなゲームと、制作の繰り返し作業を減らす Unity DocSnap・Unity DirectTMP のような Unity エディタ拡張です。どれも無料で試せて、ほとんどはソースを公開しています。',
+    lede: 'AmirCollider です。ゲームを作り、そのために必要なツールも自分で書いています。ここに置いてあるのは、Android 向けの Neon Katana のようなゲームと、制作の繰り返し作業を減らす Unity DocSnap・Unity DirectTMP のような Unity エディタ拡張です。ゲームは無料でダウンロードでき、DirectTMP は無料かつオープンソース、DocSnap は有料版に加えて無料版があります。',
     subtitle: 'OAuth 認証管理システム',
     langName: '日本語',
     themeToLight: 'ライトモード',
@@ -460,7 +460,7 @@ function getDashboardCSS() {
 
     /* ---------- stats ---------- */
     .stats {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
       gap: 14px; margin: 6px 0 38px;
     }
     .stat {
@@ -493,13 +493,13 @@ function getDashboardCSS() {
     }
 
     .games-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
       gap: 22px; margin-block-end: 44px;
     }
 
     /* ---------- highlights ---------- */
     .highlights {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
       gap: 16px; margin-block-end: 44px;
     }
     .hl {
@@ -1034,7 +1034,7 @@ function createDashboardPage(GAMES, baseUrl, routesCount, lang, theme, player = 
   <style>${siteNavCss()}${getDashboardCSS()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved, active: 'home' })}
+  ${siteHeader({ lang: resolved, active: 'home', path: '/' })}
   <div class="wrap">
     <main id="main">
       ${renderHero(resolved, CONFIG.VERSION)}

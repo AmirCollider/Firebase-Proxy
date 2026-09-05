@@ -479,13 +479,62 @@ export const CONFIG = deepFreeze({
     MAX_NOTE: 140
   },
 
+  // ==========================================
+  // The mailbox behind /mail.
+  //
+  // One address, on the domain, that the operator panel sends
+  // from and that Cloudflare Email Routing delivers to. It is
+  // written here rather than read from a secret because it is not
+  // one: it is printed on the panel, used as the From line, and
+  // has to match the Email Routing rule exactly - three places
+  // that must agree, which is what a constant is for.
+  //
+  // The API KEY that sends on its behalf is a secret and stays
+  // one (RESEND_API_KEY / BREVO_API_KEY). Changing ADDRESS here
+  // without adding the matching Email Routing rule gives a
+  // mailbox that sends and never receives; see Docs/Mail.md.
+  // ==========================================
+  MAIL: {
+    ADDRESS: 'amircollider@amircollider.com',
+    NAME: 'AmirCollider',
+
+    // How long a signed-in session on /mail lasts. Shorter than
+    // the other panels' week: this one can read correspondence
+    // and send mail as the domain, which is the most damaging
+    // thing a borrowed laptop could reach.
+    SESSION_MAX_AGE_MS: 12 * 60 * 60 * 1000,
+
+    // What one compose call may weigh. A body past this is
+    // refused with a message rather than truncated silently -
+    // an operator who does not know their email was cut is worse
+    // off than one who is told to shorten it.
+    MAX_BODY: 200 * 1024,
+    MAX_SUBJECT: 300,
+
+    // Messages one panel session may send per hour. The panel is
+    // one person, so this only ever catches a stuck loop or a
+    // stolen session - which is exactly what it is for.
+    SEND_RATE_LIMIT: 60,
+    SEND_RATE_WINDOW_MS: 60 * 60 * 1000
+  },
+
   STATE_EXPIRY_MS: 30 * 60 * 1000,
   REDIRECT_TIMEOUT_MS: 1000,
   PING_TIMEOUT_MS: 5000,
   TOKEN_MAX_AGE_MS: 60 * 60 * 1000,
   SESSION_MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000,
   AUTO_COPY_CODE: true,
-  SUPPORT_EMAIL: 'amircollider@yahoo.com',
+  // The address printed on the policy pages, used as Reply-To on
+  // every licence email, and linked from the footer.
+  //
+  // It was amircollider@yahoo.com, which is the inconsistency a
+  // reader notices first: a site that sells a product from its own
+  // domain, and asks them to write to a free webmail account. It
+  // is the domain address now, which is a real mailbox - Email
+  // Routing delivers it to /mail - rather than an alias that
+  // bounces. Docs/Mail.md has the routing rule that makes that
+  // true; until it exists, set this back.
+  SUPPORT_EMAIL: 'amircollider@amircollider.com',
   AMIR_LOGO: '/assets/AmirColliderLogo.png',
   DEFAULT_GAME_LOGO: '/assets/DefaultGameLogo.png',
 

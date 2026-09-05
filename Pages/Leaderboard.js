@@ -230,7 +230,7 @@ function leaderboardCss() {
     .lb-hero h1{font-size:clamp(1.7em,4.5vw,2.4em);font-weight:800;line-height:1.2}
     .lb-hero p{color:var(--dim)}
 
-    .lb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-block-end:24px}
+    .lb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px, 100%),1fr));gap:12px;margin-block-end:24px}
     .lb-stat{padding:18px 16px;border-radius:var(--radius);text-align:center;
       background:var(--surface);border:1px solid var(--border);
       display:flex;flex-direction:column;align-items:center;gap:6px;

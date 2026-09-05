@@ -34,7 +34,8 @@ A single Cloudflare Worker that serves:
 - one **landing / store / leaderboard / account page per game**
 - the **game API** shipped Unity builds call (OAuth, player data, entitlements)
 - a **crypto checkout** for a paid Unity editor extension (Unity DocSnap)
-- two password-protected **operator panels**: `/thegod` and `/testsite`
+- three password-protected **operator panels**: `/thegod`, `/testsite` and
+  `/mail` (the mailbox — see [§8b](#8b-mail--the-mailbox))
 
 ~47,000 lines of hand-written JavaScript. Server-rendered HTML with inline CSS
 and inline JS — that is the architecture, not a shortcut, and it is why the CSP
@@ -75,7 +76,7 @@ Per game, derived from the id (`NEON_KATANA_*` for `neon-katana`,
 `{UPPER}_GOOGLE_CLIENT_ID_ANDROID`, `{UPPER}_DEEPLINK_SCHEME` (optional).
 
 Shared: `STATE_SIGNING_SECRET` (required when any game has `login`),
-`TheGodPassword`, `TestSitePassword`, `DOCSNAP_ADMIN_TOKEN`,
+`TheGodPassword`, `TestSitePassword`, `MailPassword`, `DOCSNAP_ADMIN_TOKEN`,
 `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `BREVO_API_KEY`,
 `RESEND_API_KEY`, `DOCSNAP_MAIL_FROM`, `DOCSNAP_LICENSE_PRIVATE_KEY`,
 `DOCSNAP_KEY_WRAP_SECRET`, `DOCSNAP_ORDER_SECRET`.
@@ -106,6 +107,7 @@ Api/                   JSON endpoints for shipped clients + the panel
   PlayerDataApi.js     /database/get|set|patch/**  (the player row surface)
   GameApi.js           /games/:id/manifest|products|entitlements|consume, download
   TheGodApi.js         POST /thegod/api — ONE endpoint, `action` field, ~30 actions
+  MailApi.js           POST /mail/api — same shape, 11 actions
   AssetApi.js          /assets/** from R2
 
 Core/                  Cross-cutting, no business logic
@@ -148,10 +150,15 @@ Pages/                 Everything a browser renders (one file per page)
   Leaderboard.js       /:gameId/leaderboard  (HTML or JSON by Accept header)
   TheGod.js            /thegod  — the operator panel (4,300 lines: i18n, CSS, client JS)
   TestSite.js          /testsite — the live test panel (2,700 lines)
+  MailPanel.js         /mail — the mailbox (i18n, CSS, client JS)
   Checkout.js          the DocSnap crypto checkout
   License.js           licence activate/validate/deactivate
   ...                  About, Tools, Donate, Privacy, Terms, Metrics, Health, Ping,
                        Sitemap, Icon, ReleaseNotes, NotFound, Video, OrderHelp
+
+Mail/                  The mailbox behind /mail
+  Store.js             every LICENSE_DB query the panel makes
+  Inbound.js           the MIME parser + the email() handler's body
 
 Commerce/              The DocSnap checkout: Orders, Provider (NOWPayments),
                        Fulfilment, Emails, Mailer, Seal (AES-GCM key sealing)
@@ -172,7 +179,7 @@ Scripts/               Dev tools. Not deployed.
 migrations/            SQL. NOT authoritative — see §12.
                        0012 + <game>.sql belong to a GAME's own D1; the
                        numbered rest belong to LICENSE_DB.
-Docs/                  Checkout.md, Games.md, Licensing.md, Seo.md
+Docs/                  Checkout.md, Games.md, Licensing.md, Mail.md, Seo.md
 ```
 
 ---
@@ -212,8 +219,13 @@ Handlers that need database overrides call
 Tables: `game_settings`, `game_product_overrides`, `game_versions`,
 `game_orders`, `game_entitlements`, `game_entitlement_events`,
 `game_order_attempts`, `orders`, `order_events`, `order_attempts`, `licenses`,
-`license_activations`, `license_attempts`, `mail_outbox`, `webhook_log`,
-`panel_attempts`, `player_identity`.
+`license_activations`, `license_attempts`, `mail_outbox`, `mail_messages`,
+`webhook_log`, `panel_attempts`, `player_identity`.
+
+`mail_messages` is the `/mail` panel's mailbox (migration 0013). It is a
+different thing from `mail_outbox`: the outbox is a QUEUE the cron walks, every
+row machine-written; `mail_messages` holds mail that ARRIVED and mail a person
+typed. The panel reads `mail_outbox` and never writes to it.
 
 `game_settings` — the panel's main write target. Every column is nullable;
 NULL means "no override, use `Config.js`". Full expected column set is
@@ -451,6 +463,57 @@ out. Everything in it is a read or an asserted refusal — nothing writes.
 
 ---
 
+## 8b. `/mail` — the mailbox
+
+`Pages/MailPanel.js` renders it; `Api/MailApi.js` is the only endpoint
+(`POST /mail/api`, `{ action, ... }`). Cookie `amir_mail_auth`, `Path=/mail`,
+**12 hours** rather than the other panels' week. Secret: **`MailPassword`**,
+and it deliberately does **not** fall back to another panel's password.
+
+One mailbox: `CONFIG.MAIL.ADDRESS` = `amircollider@amircollider.com`.
+
+| Box | Source |
+|---|---|
+| Inbox / Sent / Starred / Archived | `mail_messages` (migration **0013**, LICENSE_DB) |
+| System mail | `mail_outbox`, **read-only** — licence keys, receipts, order alerts |
+
+Actions: `status`, `list`, `get`, `send`, `read`, `readAll`, `star`,
+`archive`, `delete`, `system`, `systemGet`.
+
+**Receiving is a Cloudflare Email Routing rule, not code.** `Worker.js`
+exports a third entry point, `email(message, env, ctx)`, which Cloudflare
+calls when a rule for the address is set to "Send to a Worker". Nothing in
+`ROUTES` is involved. That rule cannot be created or even *seen* from inside
+the Worker — which is why the panel says "cannot be checked from here" rather
+than showing a green tick it cannot justify. **`Docs/Mail.md` has the exact
+clicks.**
+
+Four things that will bite a change here:
+
+1. **`email()` must never throw.** A rejection is a delivery failure to
+   Cloudflare, which **bounces the message back to the sender**. A parsing
+   bug on this side must not become a bounce on theirs. There is a try/catch
+   in `Worker.js` and another inside `handleInboundEmail`.
+2. **A received message renders inside a sandboxed iframe**, never in the
+   panel's document. The sandbox omits `allow-same-origin` **and**
+   `allow-scripts` on purpose: it is HTML a stranger sent to this address,
+   and in the document it could read the session cookie or call `/mail/api`
+   as the operator. Do not add either flag to make a message "look right".
+3. **The MIME parser is hand-written** (`Mail/Inbound.js`) because rule 7
+   forbids dependencies. It handles folded headers, RFC 2047 encoded-words,
+   multipart, quoted-printable and base64. Attachments are **noted, never
+   stored**. Two bugs already found and fixed there: the `boundary=` and
+   `filename=` parameters are **case-sensitive** and must not be lowercased
+   with the rest of the header — doing so made every multipart message,
+   which is every message a real client sends, parse as empty.
+4. **`Commerce/Mailer.js` now takes an optional `from`/`fromName`/`replyTo`
+   per message.** A caller that passes none behaves exactly as before
+   (`DOCSNAP_MAIL_FROM`); the panel passes its own so it can send as the
+   domain. `mailSendable(env)` is the weaker check the panel uses — a
+   provider key, without requiring the checkout's `DOCSNAP_MAIL_FROM`.
+
+---
+
 ## 9. The Unity kit — read this before writing any C#
 
 **`Content/UnityKit.js` already contains a complete, working Unity client for
@@ -555,6 +618,11 @@ nothing else breaks — a confusing hour.
 | Reorder the landing page | the `body` template in `handleGameLanding` — one list, in render order |
 | Add a panel action | `Api/TheGodApi.js` switch + the `bad_action` list + UI in `Pages/TheGod.js` |
 | Add a panel test | `Pages/TestSite.js` — see §8 |
+| Change the mailbox UI, or add a compose template | `Pages/MailPanel.js` — see §8b |
+| Add a mail panel action | `Api/MailApi.js` switch + the `ACTIONS` list + UI in `Pages/MailPanel.js` |
+| Change what a mail query reads | `Mail/Store.js` — the panel's handlers run no SQL of their own |
+| Change how an incoming message is parsed | `Mail/Inbound.js`. Test it with the six-case harness described in §14 before believing it |
+| Change the address the site is written to | `CONFIG.SUPPORT_EMAIL` **and** `CONFIG.MAIL.ADDRESS`, and the Email Routing rule in `Docs/Mail.md` |
 | Change the Unity client | `Content/UnityKit.js` |
 | Add a UI string | the `I18N` object in that file — **all three languages** |
 | Change the brand's name in another script, or the misspellings `/about` answers | `CONFIG.BRAND` in `Config.js` — **one block**, read by `Core/Seo.js` (structured data), `Core/SiteNav.js` (the footer line) and `Content/AboutMe.js` (three answers, via `{aliases}` / `{typos}`) |
@@ -624,6 +692,19 @@ nothing else breaks — a confusing hour.
 
 ---
 
+7. **`0013_mail_panel.sql` is new** and belongs to `LICENSE_DB`. Until it is
+   run, `/mail` opens, prints the exact wrangler command, and refuses every
+   action but `status`; inbound mail is dropped with a log line rather than
+   bounced. Nothing else on the site is affected.
+
+8. **Inbound mail is not verifiable from this repository.** It depends on an
+   Email Routing rule in the Cloudflare dashboard that no code here can read.
+   If mail is not arriving, check that rule first (`Docs/Mail.md` §3) and
+   `npx wrangler tail` second — the handler logs either `Inbound mail stored`
+   or the reason it dropped the message.
+
+---
+
 ## 13. Invariants
 
 - Player id = first 15 chars of the email local part, lowercased
@@ -645,8 +726,13 @@ nothing else breaks — a confusing hour.
 - OAuth state is HMAC-signed and expiry-checked (`Games/OAuthState.js`).
 - Both panels use `Core/PanelSession.js`: signed cookie with the issue time
   inside the payload, plus login rate limiting in `panel_attempts`.
-- Panel cookies are path-scoped (`/thegod`, `/testsite`) so signing into one
-  does not hand over the other.
+- Panel cookies are path-scoped (`/thegod`, `/testsite`, `/mail`) so signing
+  into one does not hand over another. `/mail` additionally has no password
+  fallback: an unset `MailPassword` means nobody gets in, never "whoever
+  knows the test panel's password".
+- The mail panel writes only to `mail_messages`. `mail_outbox` is the cron's,
+  and a panel that could edit a queue the cron is walking could re-send
+  somebody's licence key.
 - Anything a player can delete about themselves is keyed on **player id AND
   email**, never the id alone (`deletePlayerByEmail`, `releasePlayerIdentity`).
   Two people can derive one player id, and a self-service delete is the worst

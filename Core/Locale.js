@@ -94,6 +94,7 @@ const NO_LANG_ROUTING = [
   '/profile/',
   '/thegod',
   '/testsite',
+  '/mail',
   '/checkout',
   '/order',
   '/license',

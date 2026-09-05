@@ -52,11 +52,22 @@ const CATALOG = [
     // Free tier plus two paid ones. The tags render in
     // this order and the first is always what it costs
     // to start.
+    //
+    // The licence tag is last and it is not decoration. This
+    // catalogue lists DocSnap beside DirectTMP, DirectTMP carries
+    // an "Open source" tag, and both cards link to a github.com
+    // address - which read together said that DocSnap's source is
+    // on GitHub too. It is not: the repository distributes a
+    // compiled assembly under its own licence, and the MIT grant
+    // that repository once carried stopped at the v1.0.3 tag. A
+    // reader comparing two cards should not have to open a LICENSE
+    // file to learn which one they can read the source of.
     pricing: 'freemium',
     tags: [
       { kind: 'free', fa: 'رایگان', en: 'Free', ja: '無料版' },
       { kind: 'paid', fa: 'Plus $' + CONFIG.DOCSNAP.TIERS.plus.price, en: 'Plus $' + CONFIG.DOCSNAP.TIERS.plus.price, ja: 'Plus $' + CONFIG.DOCSNAP.TIERS.plus.price },
-      { kind: 'paid', fa: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price, en: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price, ja: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price }
+      { kind: 'paid', fa: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price, en: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price, ja: 'Pro $' + CONFIG.DOCSNAP.TIERS.pro.price },
+      { kind: 'plain', fa: 'متن‌باز نیست', en: 'Not open source', ja: 'ソース非公開' }
     ],
 
     i18n: {

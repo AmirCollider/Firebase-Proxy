@@ -40,6 +40,7 @@ import {
   handleGameDownload
 } from './Api/GameApi.js'
 import { handleTheGodApi } from './Api/TheGodApi.js'
+import { handleMailApi } from './Api/MailApi.js'
 
 import { handleNotFound } from './Pages/NotFound.js'
 import { handleRobots, handleSitemap } from './Pages/Sitemap.js'
@@ -91,6 +92,13 @@ import {
   handleTheGodLoginPost,
   handleTheGodLogout
 } from './Pages/TheGod.js'
+import {
+  handleMail,
+  handleMailLogin,
+  handleMailLoginPost,
+  handleMailLogout
+} from './Pages/MailPanel.js'
+import { handleInboundEmail } from './Mail/Inbound.js'
 import { handleGameLanding, handleGameVersions } from './Pages/GameLanding.js'
 import {
   handleGameAccount,
@@ -121,6 +129,32 @@ export default {
 
   scheduled(event, env, ctx) {
     ctx.waitUntil(runScheduled(env))
+  },
+
+  // ==========================================
+  // Inbound mail.
+  //
+  // Cloudflare Email Routing calls this when a rule for an address
+  // on amircollider.com is set to "Send to a Worker". It is a
+  // THIRD entry point beside fetch and scheduled - nothing routes
+  // through the ROUTES table to get here, and no HTTP request is
+  // involved.
+  //
+  // It never throws. A rejection from this handler is a delivery
+  // failure to Cloudflare, which bounces the message back to
+  // whoever sent it - so a bug on this side must not become a
+  // bounce on theirs. Mail/Inbound.js catches everything and
+  // logs; this is the belt to that pair of braces.
+  //
+  // The routing rule itself cannot be created from code. See
+  // Docs/Mail.md.
+  // ==========================================
+  async email(message, env, ctx) {
+    try {
+      await handleInboundEmail(message, env)
+    } catch (error) {
+      logError('Inbound mail handler failed', { error: error.message })
+    }
   }
 }
 
@@ -268,6 +302,17 @@ const ROUTES = [
   // rather than twenty routes, because every action needs the same
   // authorisation check and a single door cannot be forgotten on
   // the twenty-first.
+  // The mailbox. A third panel, its own password (MailPassword),
+  // its own cookie scoped Path=/mail. It is not linked from
+  // anywhere on the site and robots.txt disallows it, same as the
+  // other two - the difference is what is behind it: real
+  // correspondence, and the ability to send mail as the domain.
+  { path: '/mail', method: 'GET', handler: handleMail },
+  { path: '/mail/login', method: 'GET', handler: handleMailLogin },
+  { path: '/mail/login', method: 'POST', handler: handleMailLoginPost },
+  { path: '/mail/logout', method: 'POST', handler: handleMailLogout },
+  { path: '/mail/api', method: 'POST', handler: handleMailApi },
+
   { path: '/thegod', method: 'GET', handler: handleTheGod },
   { path: '/thegod/login', method: 'GET', handler: handleTheGodLogin },
   { path: '/thegod/login', method: 'POST', handler: handleTheGodLoginPost },
@@ -412,7 +457,7 @@ function matchRoute(path, method) {
 // ==========================================
 const CANONICAL_EXEMPT = [
   '/oauth/', '/auth/', '/database/', '/games/', '/profile/',
-  '/assets/', '/video/', '/thegod', '/testsite', '/checkout/'
+  '/assets/', '/video/', '/thegod', '/testsite', '/mail', '/checkout/'
 ]
 
 // ==========================================

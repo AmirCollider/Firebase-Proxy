@@ -168,7 +168,7 @@ export const ABOUT = {
     findLede: 'کارهای در جریان، تیزرها و هر چیزی که ارزش نشون دادن داشته باشه رو این‌جاها می‌ذارم.',
 
     supportHead: 'اگه دوست داشتی حمایت کنی',
-    supportBody: 'همه‌ی بازی‌ها و ابزارهای این‌جا رایگانن و همین‌طور می‌مونن. اگه یکیشون به کارت اومد و دوست داشتی جبران کنی، یه صفحه‌ی کوچیک برای همین هست — با هر مبلغی که خودت بخوای. هیچ‌چیزی پشتش قفل نیست؛ فقط اگه دلت خواست.',
+    supportBody: 'بازی‌ها رایگان دانلود می‌شن و Unity DirectTMP هم رایگان و متن‌بازه. Unity DocSnap یه نسخه‌ی رایگان داره که نه کد می‌خواد نه حساب کاربری، و دو نسخه‌ی خریدنی هم داره که یک‌بار می‌خری و مال خودته. اون‌جاها که چیزی پول داره، همون‌جا نوشته چقدر. این صفحه‌ی حمایت هیچ‌کدوم از اون‌ها نیست: هیچ‌چیزی پشتش قفل نیست و چیزی هم بازش نمی‌کنه — فقط اگه یکی از این‌ها به کارت اومد و دلت خواست جبران کنی، با هر مبلغی که خودت بخوای.',
     supportCta: 'صفحه‌ی حمایت مالی',
 
     outro: 'مرسی که تا اینجا خوندی. 💜'
@@ -296,7 +296,7 @@ export const ABOUT = {
     findLede: 'Work in progress, trailers and anything else worth showing goes up in these places.',
 
     supportHead: 'If you feel like supporting it',
-    supportBody: 'Every game and every tool here is free and is staying that way. If one of them was useful to you and you feel like giving something back, there is a small page for exactly that — any amount you like. Nothing is locked behind it; it is only there if you want it.',
+    supportBody: 'The games are free to download, and Unity DirectTMP is free and open source. Unity DocSnap has a free edition that needs no key and no account, plus two paid editions you buy once and keep. Where something does cost money, the price is on the page that sells it. This page is none of those: nothing is locked behind it and nothing is unlocked by it — it is only here in case one of these was useful to you and you feel like giving something back, at any amount you like.',
     supportCta: 'The donation page',
 
     outro: 'Thank you for reading this far. 💜'
@@ -424,7 +424,7 @@ export const ABOUT = {
     findLede: '制作中の様子やトレーラー、見せる価値のあるものはこれらの場所に上げています。',
 
     supportHead: 'もし支援したいと思ってくれたら',
-    supportBody: 'ここにあるゲームもツールもすべて無料で、これからも変わりません。どれかが役に立って、何か返したいと思ってくれたなら、そのための小さなページがあります。金額はお好きなだけです。何かが制限されるわけではなく、望む人のためだけにあります。',
+    supportBody: 'ゲームは無料でダウンロードでき、Unity DirectTMP は無料かつオープンソースです。Unity DocSnap にはキーもアカウントも不要な無料版があり、そのほかに買い切りの有料版が 2 つあります。料金がかかるものは、それを販売しているページに価格を明記しています。この支援ページはそのどれでもありません。何かが制限されるわけでも、何かが解放されるわけでもなく、どれかが役に立って何か返したいと思ってくれた方のためだけにあります。金額はお好きなだけです。',
     supportCta: '支援ページ',
 
     outro: 'ここまで読んでくださってありがとうございます。💜'

@@ -619,7 +619,7 @@ function landingCss() {
     /* auto-FILL rather than auto-fit: a game published in one
        place should get one button the size of a button, not one
        button stretched across the whole card. */
-    .ln-get{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;
+    .ln-get{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px, 100%),1fr));gap:10px;
       margin-block-end:16px}
     .ln-store{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:14px;
       text-decoration:none;color:var(--text);background:var(--surface-2);border:1px solid var(--border);
@@ -648,7 +648,7 @@ function landingCss() {
     .ln-google .ln-policy{display:flex;flex-wrap:wrap;gap:8px;margin-block-start:14px}
 
     /* ---------- features ---------- */
-    .ln-feats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .ln-feats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(220px, 100%),1fr))}
     .ln-feat{display:flex;align-items:flex-start;gap:12px;padding:16px;border-radius:14px;
       background:var(--surface-2);border:1px solid var(--border)}
     .ln-feat-icon{font-size:1.5em;line-height:1;flex-shrink:0}
@@ -665,7 +665,7 @@ function landingCss() {
       border:1px solid var(--border);background:var(--surface-2)}
     .ln-shot figcaption{margin-block-start:8px;font-size:.84em;color:var(--dim);line-height:1.6}
 
-    .ln-videos{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+    .ln-videos{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(300px, 100%),1fr))}
     .ln-video{position:relative;padding-block-end:56.25%;border-radius:14px;overflow:hidden;
       border:1px solid var(--border);background:#000}
     .ln-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}

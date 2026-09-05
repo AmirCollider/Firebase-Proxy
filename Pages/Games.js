@@ -438,7 +438,7 @@ function createGamesPage(games, lang, theme) {
   <style>${siteNavCss()}${gamesCss()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved, active: 'games' })}
+  ${siteHeader({ lang: resolved, active: 'games', path: '/games' })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">

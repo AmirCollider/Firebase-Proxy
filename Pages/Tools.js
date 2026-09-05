@@ -494,7 +494,7 @@ function createToolsPage(lang, theme) {
   <style>${siteNavCss()}${getToolsCSS()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved, active: 'tools' })}
+  ${siteHeader({ lang: resolved, active: 'tools', path: '/tools' })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">

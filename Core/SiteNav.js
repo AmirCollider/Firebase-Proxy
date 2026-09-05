@@ -376,15 +376,19 @@ export function siteNavCss() {
       display: inline-flex; padding: 3px; gap: 2px; border-radius: 11px;
       background: var(--acn-surface); border: 1px solid var(--acn-border);
     }
-    .ac-seg button {
+    .ac-seg button,
+    .ac-seg a {
       appearance: none; border: 0; cursor: pointer; font: inherit;
       padding: 6px 9px; border-radius: 8px; font-size: 0.74em; font-weight: 800;
       letter-spacing: 0.04em;
       background: transparent; color: var(--acn-dim);
       transition: color 0.18s ease, background 0.18s ease;
     }
-    .ac-seg button:hover { color: var(--acn-fg); }
-    .ac-seg button[aria-pressed="true"] {
+    .ac-seg a { text-decoration: none; display: inline-block; line-height: 1.5; }
+    .ac-seg button:hover,
+    .ac-seg a:hover { color: var(--acn-fg); text-decoration: none; }
+    .ac-seg button[aria-pressed="true"],
+    .ac-seg a[aria-pressed="true"] {
       color: var(--acn-on-accent, #fff);
       background: linear-gradient(135deg, var(--acn-accent), color-mix(in srgb, var(--acn-accent) 55%, #fff));
     }
@@ -426,7 +430,7 @@ export function siteNavCss() {
     }
     .ac-foot-grid {
       display: grid; gap: 26px;
-      grid-template-columns: minmax(220px, 1.4fr) repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: minmax(min(220px, 100%), 1.4fr) repeat(auto-fit, minmax(min(150px, 100%), 1fr));
     }
     .ac-foot-brand { display: flex; flex-direction: column; gap: 10px; }
     .ac-foot-mark { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--acn-fg); }
@@ -569,7 +573,7 @@ export function siteBackToTop({ lang } = {}) {
 // page-specific links - a game's leaderboard puts its own game
 // there, so the route back is one click and not a guess.
 // ==========================================
-export function siteHeader({ lang, active = '', extra = [], accent = '' } = {}) {
+export function siteHeader({ lang, active = '', extra = [], accent = '', path = '' } = {}) {
   const code = resolveLang(lang)
   const p = pack(code)
 
@@ -589,19 +593,51 @@ export function siteHeader({ lang, active = '', extra = [], accent = '' } = {}) 
     + '>' + escapeHtml(item.label) + '</a>'
   ).join('')
 
+  // ==========================================
+  // The language switcher, as LINKS.
+  //
+  // These were buttons calling acSetLang(), and that one detail is
+  // most of why searching this site in English or Japanese went
+  // badly. A button is not a link: it left the /en/ and /ja/ trees
+  // with ZERO inbound references anywhere on the site. Their only
+  // mentions were the sitemap and the hreflang cluster - and
+  // neither of those is a discovery mechanism. Google's own
+  // guidance is explicit that hreflang selects between pages it has
+  // already found; it does not find them. So two thirds of this
+  // site sat behind a JavaScript handler, with no internal link
+  // pointing at it and no link equity reaching it, which is exactly
+  // what "discovered - currently not indexed" looks like from the
+  // outside.
+  //
+  // As anchors, every page now links to its own translation in both
+  // other languages: three real edges per page, reciprocal, and
+  // matching the hreflang cluster URL for URL. The click handler
+  // still runs and still stores the preference - the href is what
+  // a crawler follows and what a reader without JavaScript gets.
+  //
+  // The path option is the page's own language-free path. A caller
+  // that does not pass one falls back to the language home, which is
+  // still a real link into that tree - never back to a button.
+  //
   // Two-letter codes rather than the language's own name. "فارسی
   // English 日本語" is 200px of a bar that also has to hold five
   // links, and on a page whose content column is 940px wide that
   // was the difference between the last link fitting and being
   // clipped mid-word. The full name is still announced, via the
   // title and the accessible label.
+  // ==========================================
+  const bare = String(path || '/').split('?')[0] || '/'
+
   const segs = ['fa', 'en', 'ja'].map(entry =>
-    '<button type="button" data-ac-lang="' + entry + '" lang="' + entry + '"'
+    '<a href="' + escapeHtml(localizedPath(bare, entry)) + '"'
+    + ' data-ac-lang="' + entry + '" lang="' + entry + '"'
+    + ' hreflang="' + entry + '"'
     + ' aria-pressed="' + (entry === code ? 'true' : 'false') + '"'
+    + (entry === code ? ' aria-current="true"' : '')
     + ' title="' + escapeHtml(NAV_I18N[entry].langName) + '"'
     + ' aria-label="' + escapeHtml(NAV_I18N[entry].langName) + '"'
-    + ' onclick="acSetLang(\'' + entry + '\')">'
-    + entry.toUpperCase() + '</button>'
+    + ' onclick="return acSetLang(\'' + entry + '\', event)">'
+    + entry.toUpperCase() + '</a>'
   ).join('')
 
   // Both or neither. The accent alone would leave the pressed
@@ -881,8 +917,22 @@ export function siteChromeScript() {
       var AC_LANGS = ${JSON.stringify(LANGUAGES.supported)};
       var AC_DEFAULT = ${JSON.stringify(LANGUAGES.default)};
 
-      window.acSetLang = function (code) {
+      // Called from the switcher's anchors, which carry a real href
+      // to the same page in that language. The handler still runs
+      // because it does something the href cannot: it stores the
+      // preference, so the NEXT bare URL the reader opens resolves
+      // to their language instead of the default.
+      //
+      // The event argument is optional. When one is passed, a
+      // modified click - middle button, ctrl, cmd, shift - is left
+      // to the browser, so "open in a new tab" keeps working on a
+      // language link.
+      window.acSetLang = function (code, event) {
         if (AC_LANGS.indexOf(code) === -1) return false;
+
+        if (event && (event.button !== 0 || event.metaKey || event.ctrlKey
+                      || event.shiftKey || event.altKey)) return true;
+
         try { localStorage.setItem('ac_lang', code); } catch (e) {}
         document.cookie = 'lang=' + code + ';path=/;max-age=31536000;samesite=lax';
 

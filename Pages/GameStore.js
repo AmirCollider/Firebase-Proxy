@@ -714,7 +714,7 @@ function renderStore(game, lang, theme, { products, player, owned, ready }) {
     </div>` : ''}
 
     <style>
-      .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+      .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px, 100%),1fr));gap:16px}
       .pcard{position:relative;display:flex;flex-direction:column;padding:22px 20px;border-radius:var(--radius);
         background:var(--surface);border:1px solid var(--border);
         transition:transform .2s ease,border-color .2s ease,background .2s ease}

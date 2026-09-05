@@ -456,7 +456,7 @@ ${chromeHead({ title, description, accent: game.color, head, seo })}
 </head>
 <body>
   ${skipLabel ? `<a class="skip" href="#main">${escapeHtml(skipLabel)}</a>` : ''}
-  ${siteHeader({ lang, active: 'games', accent: gameAccent(game.color) })}
+  ${siteHeader({ lang, active: 'games', accent: gameAccent(game.color), path: canonicalPath })}
   <div class="wrap">
     ${siteBreadcrumb({ lang, trail })}
     ${chromeTop(game, lang, active, { downloadable })}

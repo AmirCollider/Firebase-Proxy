@@ -292,7 +292,7 @@ function aboutCss() {
        nowhere near the same length - a one-line fact next to a
        four-line one, then a lone card on a second row. Two wider
        columns pair them off evenly. */
-    .ab-facts { display: grid; gap: 13px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .ab-facts { display: grid; gap: 13px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
     .ab-fact {
       display: flex; align-items: flex-start; gap: 13px;
       padding: 17px 19px; border-radius: 15px;
@@ -306,7 +306,7 @@ function aboutCss() {
        footer's row is chrome a reader skims; this one is content,
        and a page about a person should say "YouTube" rather than
        make them recognise a glyph. */
-    .ab-socials { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .ab-socials { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
     .ab-social {
       display: flex; align-items: center; gap: 12px;
       padding: 14px 18px; border-radius: 15px; text-decoration: none;
@@ -589,7 +589,7 @@ function createAboutPage(lang, theme) {
   <style>${siteNavCss()}${aboutCss()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved, active: 'about' })}
+  ${siteHeader({ lang: resolved, active: 'about', path: '/about' })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">

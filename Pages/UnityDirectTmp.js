@@ -892,14 +892,18 @@ function getCSS() {
       display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
       background: var(--surface); border: 1px solid var(--border);
     }
-    .seg button {
+    .seg button,
+    .seg a {
       appearance: none; border: 0; cursor: pointer; font: inherit;
       padding: 6px 12px; border-radius: 999px; font-size: 0.82em; font-weight: 600;
       background: transparent; color: var(--text-dim);
       transition: background 0.18s ease, color 0.18s ease;
     }
-    .seg button:hover { color: var(--text); }
-    .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
+    .seg a { text-decoration: none; display: inline-block; line-height: 1.5; }
+    .seg button:hover,
+    .seg a:hover { color: var(--text); text-decoration: none; }
+    .seg button[aria-pressed="true"],
+    .seg a[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
     .icon-btn {
       appearance: none; cursor: pointer; width: 38px; height: 38px;
       display: grid; place-items: center; border-radius: 12px;
@@ -1068,7 +1072,7 @@ function getCSS() {
 
     /* ---------- feature grid ---------- */
     .features {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(272px, 100%), 1fr));
       gap: 14px; margin-block-start: 20px;
     }
     .feature {
@@ -1087,7 +1091,14 @@ function getCSS() {
 
     /* ---------- steps ---------- */
     .steps { list-style: none; counter-reset: step; display: grid; gap: 14px; }
-    .steps li { display: flex; align-items: flex-start; gap: 13px; }
+
+    /* See the same pair on the DocSnap page. A grid item and a
+       flex item both start at min-width: auto, which floors them
+       at the git URL box's flex-basis - 320px here, on a 320px
+       phone, inside a padded column. That floor is what gave this
+       page 131px of sideways scroll. */
+    .steps li { display: flex; align-items: flex-start; gap: 13px; min-width: 0; }
+    .steps li > * { min-width: 0; }
     .steps li::before {
       counter-increment: step; content: counter(step);
       flex: none; width: 27px; height: 27px; border-radius: 50%;
@@ -1096,9 +1107,11 @@ function getCSS() {
     }
     .steps b { font-weight: 700; }
 
-    .copy-row { display: flex; align-items: stretch; gap: 8px; margin-block-start: 10px; flex-wrap: wrap; }
+    .copy-row { display: flex; align-items: stretch; gap: 8px; margin-block-start: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
     .copy-url {
-      flex: 1 1 320px; min-width: 0;
+      /* Bounded by the container, so the basis stops being a floor
+         the page has to grow to satisfy. */
+      flex: 1 1 min(100%, 320px); min-width: 0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 0.86em; padding: 12px 15px; border-radius: var(--radius-sm);
       direction: ltr; text-align: start;
@@ -1231,9 +1244,16 @@ function renderTopbar(lang, amirLogo) {
   const cur = resolveLang(lang)
   const langs = [['fa', I18N.fa.langName], ['en', I18N.en.langName], ['ja', I18N.ja.langName]]
 
+  // Links, not buttons - see Core/SiteNav.js. Same bug, same fix:
+  // without an href, the English and Japanese DirectTMP pages had
+  // no internal link anywhere pointing at them.
   const segButtons = langs.map(([code, label]) =>
-    '<button type="button" aria-pressed="' + (code === cur ? 'true' : 'false') + '"'
-    + ' onclick="acSetLang(\'' + code + '\')" lang="' + code + '">' + escapeHtml(label) + '</button>'
+    '<a href="' + escapeHtml(localizedPath('/unity-directtmp', code)) + '"'
+    + ' aria-pressed="' + (code === cur ? 'true' : 'false') + '"'
+    + (code === cur ? ' aria-current="true"' : '')
+    + ' hreflang="' + code + '"'
+    + ' onclick="return acSetLang(\'' + code + '\', event)" lang="' + code + '">'
+    + escapeHtml(label) + '</a>'
   ).join('')
 
   return `

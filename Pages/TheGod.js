@@ -1846,8 +1846,8 @@ function panelCss() {
       padding-block-end:6px;border-block-end:1px solid var(--border)}
 
     .grid{display:grid;gap:14px}
-    .grid.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-    .grid.three{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+    .grid.two{grid-template-columns:repeat(auto-fit,minmax(min(280px, 100%),1fr))}
+    .grid.three{grid-template-columns:repeat(auto-fit,minmax(min(210px, 100%),1fr))}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
     label.f{display:block;margin-block-end:14px}
@@ -1891,7 +1891,7 @@ function panelCss() {
     .note.info{border-inline-start-color:var(--info)}
 
     /* ---- game cards ---- */
-    .gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+    .gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px, 100%),1fr));gap:14px}
     .gcard{padding:18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);
       box-shadow:var(--shadow);cursor:pointer;transition:transform .18s ease,border-color .18s ease}
     .gcard:hover{transform:translateY(-3px);border-color:var(--brand)}
@@ -2001,7 +2001,7 @@ function panelCss() {
       display:flex;align-items:center;justify-content:center;font-size:1em;
       background:var(--surface-2);border:1px solid var(--border)}
     .plavatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .plstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-block:14px}
+    .plstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(128px, 100%),1fr));gap:10px;margin-block:14px}
     .plstat{padding:13px 15px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
     .plstat b{display:block;font-size:1.2em;font-weight:800;margin-block-end:2px}
     .plstat span{font-size:.84em;color:var(--dim)}

@@ -454,7 +454,7 @@ function healthStyles(accent, accentRgb) {
 
   .hc-grid {
     display: grid; gap: 16px; margin-bottom: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   }
   .hc-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -481,7 +481,7 @@ function healthStyles(accent, accentRgb) {
   .hc-ok { color: var(--ok); }
 
   .hc-endpoints { margin-bottom: 16px; }
-  .hc-ep-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .hc-ep-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
   .hc-ep-group { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
   .hc-ep-title { font-size: .82rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
   .hc-ep-item {

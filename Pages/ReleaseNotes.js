@@ -1104,9 +1104,16 @@ function getReleaseNotesCSS() {
       background: linear-gradient(135deg, var(--brand), var(--brand-2));
     }
     .group ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    /* Release notes quote URLs, package ids and binding names in
+       running text, and none of those has a space to break at. One
+       old entry naming a full firebase-proxy hostname was on its
+       own enough to push this page past a 320px screen. Breaking
+       inside a long token is the lesser evil on a changelog: the
+       alternative is a line of prose that runs off the phone. */
     .group li {
       position: relative; padding-inline-start: 20px;
       color: var(--text); font-size: 0.93em; line-height: 1.65;
+      overflow-wrap: anywhere;
     }
     .group li::before {
       content: ''; position: absolute; inset-inline-start: 3px; top: 0.62em;
@@ -1266,7 +1273,7 @@ function createReleaseNotesPage(lang, theme) {
   <style>${siteNavCss()}${getReleaseNotesCSS()}</style>
 </head>
 <body>
-  ${siteHeader({ lang: resolved, active: 'releaseNotes' })}
+  ${siteHeader({ lang: resolved, active: 'releaseNotes', path: '/release-notes' })}
   <div class="wrap">
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">
