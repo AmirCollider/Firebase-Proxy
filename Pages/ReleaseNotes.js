@@ -103,164 +103,102 @@ const RELEASES = [
     date: '2026-09-05',
     tag: 'latest',
     summary: {
-      fa: 'یک صندوق ایمیل کامل روی خودِ دامنه، یک فرم تماس عمومی با فیلتر اسپم، و یک صفحه‌ی رزومه. به‌علاوه دو دسته اصلاح که سایت را از دو مشکل قدیمی بیرون آورد: ادعاهای متناقض درباره‌ی رایگان و متن‌باز بودن، و اینکه هیچ لینکی به نسخه‌های انگلیسی و ژاپنی سایت وجود نداشت.',
-      en: 'A full mailbox on the domain itself, a public contact form with a real spam filter, and a resume page. Plus two rounds of correction that took the site out of two long-standing problems: contradictory claims about what is free and what is open source, and the fact that nothing on the site linked to its own English and Japanese pages.',
-      ja: 'ドメイン上で動作する本格的なメールボックス、スパムフィルター付きの公開お問い合わせフォーム、そして経歴ページを追加しました。あわせて、長く残っていた 2 つの問題も修正しました。無料・オープンソースに関する矛盾した記述と、英語版・日本語版ページへの内部リンクが 1 つも存在しなかった件です。'
+      fa: 'حالا می‌شود مستقیم از خود سایت برایم پیام فرستاد، یک صفحه‌ی رزومه اضافه شده، و کلیپ‌های Unity DocSnap بالاخره در گوگل پیدا می‌شوند.',
+      en: 'You can now write to me straight from the site, there is a resume page, and the Unity DocSnap clips are finally findable on Google.',
+      ja: 'サイトから直接メッセージを送れるようになりました。経歴ページを追加し、Unity DocSnap の動画も検索で見つかるようになりました。'
     },
     groups: [
       {
-        title: { fa: 'صندوق ایمیل روی دامنه', en: 'A mailbox on the domain', ja: 'ドメイン上のメールボックス' },
+        title: { fa: 'یک راه مستقیم برای پیام دادن', en: 'A direct way to reach me', ja: '直接ご連絡いただけます' },
         items: {
           fa: [
-            'یک پنل ایمیل کامل روی آدرس خصوصی /domail2 اضافه شد — پنل سوم، کنار /thegod و /testsite، با رمز جدا (secret به نام TheEmailPassword) و کوکی جدا. رمز هیچ fallback‌ای به رمز پنل‌های دیگر ندارد: پشت این پنل مکاتبات واقعی و امکان ارسال ایمیل با نام دامنه است.',
-            'آدرس عمداً /mail نیست. /mail و /webmail و /admin اولین چیزهایی هستند که هر اسکنر خودکار امتحان می‌کند. چیزی که از پنل محافظت می‌کند رمز است، ولی آدرسی که کسی حدس نمی‌زند فرم ورود را از هر جست‌وجوی اتفاقی بیرون نگه می‌دارد.',
-            'ارسال ایمیل با ظاهر دلخواه: ویرایشگر متن با درشت، کج، تیتر، نقل‌قول، فهرست، لینک، تصویر و خط جدا — به‌همراه نمای کد HTML و پیش‌نمایش زنده، و چهار قالب آماده.',
-            'دریافت ایمیل از طریق Email Routing کلادفلر. یک ورودی سوم به Worker اضافه شد (email) با یک پارسر MIME دست‌نویس که هدرهای شکسته، encoded-word فارسی و ژاپنی، multipart و کدگذاری‌های base64 و quoted-printable را می‌فهمد.',
-            'ایمیل‌های سیستم هم در همان پنل دیده می‌شوند: کلیدهای لایسنسی که برای خریدارها رفته، رسیدها و هشدارهای سفارش. این بخش فقط خواندنی است — صف را cron می‌گرداند و پنلی که بتواند آن را ویرایش کند می‌تواند کلید لایسنس کسی را دوباره بفرستد.',
-            'پیام دریافتی داخل iframe سندباکس‌شده رندر می‌شود، نه داخل صفحه‌ی پنل. سندباکس عمداً allow-same-origin و allow-scripts ندارد: این HTML را یک غریبه فرستاده و داخل صفحه می‌توانست کوکی نشست را بخواند.'
+            'صفحه‌ی «ارتباط با من»: موضوع را بنویس، اگر لازم بود عکس هم بگذار، بفرست. مستقیم به صندوق خودم می‌آید و خودم جواب می‌دهم.',
+            'برای سوال، گزارش باگ، پیگیری سفارش یا پیشنهاد همکاری — هر کدام دسته‌ی خودش را دارد تا زودتر به جواب برسی.',
+            'بدون ثبت‌نام، بدون کپچا. آدرسی که می‌نویسی فقط برای همان جواب استفاده می‌شود.'
           ],
           en: [
-            'A full mail panel at the private address /domail2 — a third panel beside /thegod and /testsite, with its own password (a secret named TheEmailPassword) and its own cookie. The password does not fall back to another panel\'s: behind this one is real correspondence and the ability to send mail as the domain.',
-            'The address is deliberately not /mail. /mail, /webmail and /admin are the first things every automated scanner tries. The password is what protects the panel, but an address nobody guesses keeps the login form out of every drive-by sweep.',
-            'Composing rich mail: an editor with bold, italic, headings, quotes, lists, links, images and dividers — plus an HTML source view, a live preview, and four ready-made templates.',
-            'Receiving, through Cloudflare Email Routing. A third entry point was added to the Worker (email) with a hand-written MIME parser that understands folded headers, Persian and Japanese encoded-words, multipart bodies, and both base64 and quoted-printable encodings.',
-            'System mail is visible in the same panel: the licence keys that went to buyers, the receipts, the order alerts. That box is read-only — the cron owns that queue, and a panel that could edit it could re-send somebody\'s licence key.',
-            'A received message renders inside a sandboxed iframe, never in the panel\'s own document. The sandbox deliberately omits allow-same-origin and allow-scripts: it is HTML a stranger sent to this address, and in the document it could read the session cookie.'
+            'A contact page: write your message, add a screenshot if it helps, send. It lands in my own mailbox and I answer it myself.',
+            'For questions, bug reports, order help or working together — each has its own topic so it reaches the right answer faster.',
+            'No sign-up and no CAPTCHA. The address you give is used for that reply and nothing else.'
           ],
           ja: [
-            '非公開アドレス /domail2 に本格的なメールパネルを追加しました。/thegod と /testsite に並ぶ 3 つ目のパネルで、独自のパスワード（TheEmailPassword という名前のシークレット）と独自の Cookie を持ちます。他のパネルのパスワードへのフォールバックはありません。この先にあるのは実際の通信と、ドメイン名でメールを送る権限だからです。',
-            'アドレスをあえて /mail にしていません。/mail・/webmail・/admin は自動スキャナーが最初に試す場所です。パネルを守るのはパスワードですが、誰も推測しないアドレスはログインフォームを無差別なスキャンから遠ざけます。',
-            'リッチメールの作成：太字・斜体・見出し・引用・リスト・リンク・画像・区切り線を備えたエディタに加え、HTML ソース表示、ライブプレビュー、4 種類のテンプレート。',
-            'Cloudflare Email Routing による受信。Worker に 3 つ目のエントリポイント（email）を追加し、折り返しヘッダー、ペルシャ語・日本語の encoded-word、マルチパート本文、base64 と quoted-printable の両方を解釈する自作の MIME パーサーを実装しました。',
-            'システムメールも同じパネルで確認できます。購入者に送られたライセンスキー、領収書、注文の警告です。この箱は読み取り専用です。キューは cron が所有しており、編集できるパネルは誰かのライセンスキーを再送してしまえるからです。',
-            '受信したメッセージはサンドボックス化した iframe 内で描画され、パネル本体のドキュメントには入りません。allow-same-origin と allow-scripts は意図的に付けていません。見知らぬ相手が送ってきた HTML であり、ドキュメント内ではセッション Cookie を読めてしまうためです。'
+            'お問い合わせページを追加しました。ご用件を書いて、必要ならスクリーンショットを添えて送るだけです。私の受信箱に直接届き、私が返信します。',
+            'ご質問、不具合の報告、ご注文について、ご協業のご相談 — それぞれに用件の種別があり、より早く回答にたどり着けます。',
+            '登録も CAPTCHA も不要です。ご記入のアドレスは、その返信にのみ使用します。'
           ]
         }
       },
       {
-        title: { fa: 'پوشه‌بندی، مسدودسازی و فرم تماس', en: 'Folders, blocking and the contact form', ja: 'フォルダ・ブロック・お問い合わせフォーム' },
+        title: { fa: 'صفحه‌ی رزومه', en: 'A resume page', ja: '経歴ページ' },
         items: {
           fa: [
-            'پوشه‌های دلخواه با نام و رنگ. صندوق دریافتی، ارسال‌شده، ستاره‌دار و بایگانی پوشه نیستند — نماهایی هستند که هیچ‌وقت نباید حذف شوند. حذف یک پوشه پیام‌هایش را پاک نمی‌کند؛ به صندوق برمی‌گرداندشان.',
-            'مسدودسازی یک آدرس یا یک دامنه‌ی کامل، با شمارنده‌ی «چند پیام جلویش گرفته شد». قانون در دو جا اعمال می‌شود: هنگام دریافت ایمیل و روی فرم تماس — وگرنه فرم تماس راه مستند دور زدن مسدودی می‌شد.',
-            'یک صفحه‌ی تماس عمومی روی /contact: موضوع، متن، دسته‌بندی و تا سه تصویر پیوست. پیام مستقیم داخل همان صندوقی می‌آید که ایمیل‌های واقعی می‌آیند.',
-            'فیلتر اسپم دست‌نویس با پنج سیگنال امتیازدهی‌شده: فیلد تله (که آدم نمی‌بیند و ربات پر می‌کند)، توکن امضاشده‌ی زمان که فرم‌های زیر سه ثانیه را می‌گیرد، تعداد لینک، عبارت‌های تبلیغاتی، و شکل متن. بدون CAPTCHA و بدون اسکریپت شخص ثالث.',
-            'پیوست‌ها هم با نوع اعلام‌شده و هم با بایت‌های ابتدایی فایل بررسی می‌شوند: فایلی که ادعا می‌کند PNG است ولی نیست ذخیره نمی‌شود. نام فایل هم از فرستنده گرفته نمی‌شود.',
-            'محدودیت تعداد پیام برای هر آدرس، و سقف اندازه برای متن و تصویر — همه با پیام مشخص، نه با یک خطای عمومی.'
+            'اگر برای کار یا همکاری آمده‌ای: کارها، سطح مهارت‌ها و مدارک، همه در یک صفحه.',
+            'هر مهارت کنارش نوشته کجای همین سایت استفاده شده — یعنی می‌شود همان‌جا بازش کرد و دید.',
+            'صفحه‌ی «درباره‌ی من» سر جایش هست و عوض نشده؛ آن یکی خودمانی است، این یکی رسمی.'
           ],
           en: [
-            'Named, coloured folders. Inbox, Sent, Starred and Archived are not folders — they are views, and none of them should be deletable. Deleting a folder does not delete its messages; it puts them back in the inbox.',
-            'Blocking an address or a whole domain, with a counter for how many messages each rule has stopped. The rule is enforced in two places: on inbound mail and on the contact form — otherwise the form would be the documented way around a block.',
-            'A public contact page at /contact: subject, message, a topic, and up to three image attachments. It lands directly in the same mailbox real email arrives in.',
-            'A hand-written spam filter with five scored signals: a honeypot field (invisible to a person, filled in by a bot), a signed timing token that catches forms submitted in under three seconds, link counting, bulk-mail phrases, and the shape of the text. No CAPTCHA, no third-party script.',
-            'Attachments are checked against both their declared type and their first bytes: a file claiming to be a PNG and failing to be one is not stored. The stored filename is ours, never the sender\'s.',
-            'A per-address submission limit, and size ceilings for text and images — each refused with a message that names the actual reason rather than a generic failure.'
+            'If you are here about work: the projects, the skill levels and the certificates, on one page.',
+            'Every skill names where on this site it was used — so you can open it and look rather than take my word for it.',
+            'The About page is unchanged and still there. That one is the casual version; this is the formal one.'
           ],
           ja: [
-            '名前と色を付けられるフォルダ。受信トレイ・送信済み・スター付き・アーカイブはフォルダではなくビューであり、削除できてはいけないものです。フォルダを削除してもメッセージは削除されず、受信トレイに戻ります。',
-            'アドレス単位・ドメイン単位のブロックと、各ルールが何件を拒否したかのカウンター。ルールは 2 か所で適用されます。受信時と、お問い合わせフォームの送信時です。そうしなければフォームがブロックの抜け道になってしまいます。',
-            '/contact に公開のお問い合わせページを追加しました。件名・本文・用件の種別・最大 3 枚の画像添付に対応し、実際のメールが届くのと同じ受信箱に直接届きます。',
-            '5 つの指標をスコアリングする自作のスパムフィルター：ハニーポット（人には見えず、ボットが埋める項目）、3 秒未満の送信を捉える署名付きの時間トークン、リンク数、宣伝的な語句、文章の形。CAPTCHA も第三者スクリプトも使いません。',
-            '添付ファイルは申告された種別と先頭バイトの両方で検査します。PNG を名乗って実際は違うファイルは保存されません。保存名も送信者のものではなく、こちらで採番します。',
-            'アドレスごとの送信回数制限と、本文・画像のサイズ上限。いずれも汎用エラーではなく、実際の理由を伝えるメッセージで拒否します。'
+            'お仕事のご相談でお越しの方へ。制作物、スキルレベル、資格を 1 ページにまとめました。',
+            '各スキルには、このサイトのどこで使ったかを併記しています。そのまま開いて確認していただけます。',
+            '「私について」のページはそのまま残しています。あちらはくだけた内容、こちらは正式な内容です。'
           ]
         }
       },
       {
-        title: { fa: 'صفحه‌ی رزومه', en: 'The resume page', ja: '経歴ページ' },
+        title: { fa: 'ویدیوهای Unity DocSnap در جست‌وجو', en: 'The Unity DocSnap clips, in search', ja: 'Unity DocSnap の動画が検索に' },
         items: {
           fa: [
-            'یک صفحه‌ی رزومه‌ی رسمی روی /resume (و /cv که به همان اشاره می‌کند). صفحه‌ی «درباره‌ی من» دست‌نخورده ماند: آن یکی خودمانی است و برای کسی نوشته شده که بازی را دوست داشته و کنجکاو شده؛ این یکی برای کسی است که تصمیم می‌گیرد استخدام یا سفارش بدهد.',
-            'جدول مهارت‌ها با چهار سطح، و یک ستون «کجا» که می‌گوید هر مهارت در کدام پروژه‌ی همین سایت استفاده شده. سطح‌ها از پیچیدگی کاری که واقعاً انجام شده تعیین شده‌اند، نه از مدت آشنایی.',
-            'فهرست پروژه‌ها مستقیماً از رجیستری بازی‌ها و CONFIG ساخته می‌شود — پس یک بازی جدید در Config.js خودش این‌جا ظاهر می‌شود و شماره‌ی نسخه هرگز جای دوم برای به‌روزرسانی نیست.',
-            'گواهینامه‌ها فهرست شده‌اند ولی فایلشان منتشر نشده: روی همه‌شان نام و مشخصات شخصی هست و هیچ‌جای این سایت آن‌ها را منتشر نمی‌کند.',
-            'یوتیوب عمداً در این صفحه نیست؛ در فوتر و صفحه‌ی «درباره‌ی من» سر جایش هست.'
+            'ده کلیپ کوتاه که نشان می‌دهند ابزار چه می‌کند، تا امروز در نتایج گوگل پیدا نمی‌شدند. حالا می‌شوند.',
+            'هر کلیپ عنوان، توضیح و مدت خودش را دارد و مستقیم قابل باز کردن است — لازم نیست کل صفحه را بگردی.'
           ],
           en: [
-            'A formal resume at /resume (and /cv, which points at the same page). The About page was left exactly as it was: that one is casual and written for somebody who liked a game and wondered who made it; this one is for somebody deciding whether to hire or commission.',
-            'A skills table with four levels and a "where" column naming the project on this site that each one was used in. Levels are set by the complexity of the work actually done, not by how long the tool has been open.',
-            'The project list is built from the game registry and CONFIG directly — so a game added in Config.js appears here by itself, and a version number is never a second place to remember.',
-            'Certificates are listed but their files are not published: every one of them carries a legal name and personal details, and nothing on this site publishes those.',
-            'YouTube is deliberately absent from this page; it stays in the footer and on the About page.'
+            'Ten short clips showing what the tool does were not findable on Google at all. Now they are.',
+            'Each clip has its own title, description and runtime, and opens on its own — no hunting through the page for the one you want.'
           ],
           ja: [
-            '/resume（および同じページを指す /cv）に、正式な経歴ページを追加しました。「私について」のページはそのままです。あちらはくだけた文体で、ゲームを気に入って作者が気になった方に向けたもの。こちらは採用や発注を検討している方に向けたものです。',
-            '4 段階のスキル表と、それぞれをこのサイトのどのプロジェクトで使ったかを示す「使用箇所」の列。レベルは触れてきた期間ではなく、実際に行った作業の複雑さで決めています。',
-            '制作物の一覧はゲームレジストリと CONFIG から直接生成しています。Config.js にゲームを追加すればここにも自動的に現れ、バージョン番号を二重に管理する必要もありません。',
-            '資格は一覧に記載していますが、証書そのものは公開していません。いずれにも本名と個人情報が記載されており、このサイトはそれらを公開しないためです。',
-            'YouTube はこのページにはあえて載せていません。フッターと「私について」のページには従来どおり掲載しています。'
+            'ツールの動作を紹介する 10 本の短い動画が、これまで Google で見つかりませんでした。今後は表示されます。',
+            '各動画にタイトル・説明・再生時間があり、個別に開けます。目的の動画をページ内で探す必要はありません。'
           ]
         }
       },
       {
-        title: { fa: 'ادعاهای متناقض، اصلاح شد', en: 'The contradictions, corrected', ja: '矛盾した記述の修正' },
+        title: { fa: 'سایت به سه زبان، درست', en: 'The site in three languages, properly', ja: '3 言語対応の改善' },
         items: {
           fa: [
-            'صفحه‌ی «درباره‌ی من» می‌گفت «همه‌ی بازی‌ها و ابزارهای این‌جا رایگان‌اند و هیچ‌چیزی پشتش قفل نیست». این درست نبود: Unity DocSnap دو نسخه‌ی خریدنی دارد و هر دو بازی فروشگاه درون‌برنامه‌ای دارند. متن در هر سه زبان بازنویسی شد.',
-            'داشبورد می‌گفت «کدهای بیشترشان باز است». فقط DirectTMP متن‌باز است؛ DocSnap یک اسمبلی کامپایل‌شده زیر لایسنس اختصاصی است. (تا تگ v1.0.3 سورسش با MIT منتشر می‌شد و آن اجازه هنوز برای نسخه‌های آن زمان برقرار است — ولی برای نسخه‌های بعدی نه.)',
-            'کاتالوگ ابزارها حالا تگ «متن‌باز نیست» روی DocSnap دارد. این کارت کنار DirectTMP است که تگ «متن‌باز» دارد و هر دو به گیت‌هاب لینک می‌دهند — و همین کنار هم بودن بود که پیام اشتباه می‌داد.',
-            'یک سوال «متن‌باز است؟» به FAQ صفحه‌ی DocSnap اضافه شد، و لایسنس در structured data هم اعلام می‌شود؛ چون آدرس گیت‌هاب به‌تنهایی قوی‌ترین سیگنالی است که یک خزنده برای «این متن‌باز است» دارد.',
-            'آدرس پشتیبانی از amircollider@yahoo.com به آدرس روی دامنه منتقل شد — سایتی که محصول می‌فروشد و آدرس وبمیل رایگان می‌دهد، اولین ناهماهنگی‌ای است که خواننده می‌بیند.'
+            'نسخه‌ی انگلیسی و ژاپنی هر صفحه حالا از خود سایت لینک دارد. قبلاً فقط با عوض کردن دستی زبان می‌شد به آن‌ها رسید، و موتورهای جست‌وجو هم عملاً پیدایشان نمی‌کردند.',
+            'دکمه‌ی زبان حالا یک لینک واقعی است: می‌شود در تب جدید بازش کرد یا آدرسش را کپی کرد و فرستاد.'
           ],
           en: [
-            'The About page said "every game and every tool here is free and nothing is locked behind it". That was not true: Unity DocSnap has two paid editions and both games have in-app stores. The text was rewritten in all three languages.',
-            'The dashboard said "most of it is open source". Only DirectTMP is; DocSnap is a compiled assembly under its own licence. (Everything up to the v1.0.3 tag was published as source under MIT and that grant still stands for copies obtained then — but not for the releases after it.)',
-            'The tools catalogue now carries a "Not open source" tag on DocSnap. That card sits beside DirectTMP, which carries an "Open source" tag, and both link to github.com — the pairing was what read wrong.',
-            'An "Is it open source?" question was added to the DocSnap FAQ, and the licence is declared in the structured data too, because a github.com address on its own is the strongest signal a crawler has that something is open source.',
-            'The support address moved from amircollider@yahoo.com to the one on the domain — a site that sells a product and asks to be written to at a free webmail account is the first inconsistency a reader notices.'
+            'The English and Japanese version of every page is now linked from the site itself. Before, you could only get there by switching language by hand — and search engines effectively could not find them at all.',
+            'The language buttons are real links now: you can open one in a new tab, or copy its address and send it to somebody.'
           ],
           ja: [
-            '「私について」のページには「ここにあるゲームもツールもすべて無料で、制限されるものは何もない」と書かれていました。これは事実ではありません。Unity DocSnap には有料版が 2 つあり、どちらのゲームにもアプリ内ストアがあります。3 言語すべてで書き直しました。',
-            'トップページには「ほとんどはソースを公開しています」とありました。オープンソースなのは DirectTMP だけで、DocSnap は独自ライセンスのコンパイル済みアセンブリです（v1.0.3 タグまではソースを MIT で公開しており、その許諾は当時のコピーには今も有効ですが、それ以降のリリースには及びません）。',
-            'ツールカタログの DocSnap に「ソース非公開」のタグを追加しました。このカードは「オープンソース」タグを持つ DirectTMP の隣にあり、どちらも github.com にリンクしています。その並びこそが誤解を生んでいました。',
-            'DocSnap の FAQ に「オープンソースですか?」の項目を追加し、構造化データにもライセンスを明記しました。github.com のアドレスだけでは、クローラーにとって「これはオープンソースだ」という最も強い signal になってしまうためです。',
-            'サポート用アドレスを amircollider@yahoo.com からドメイン上のアドレスへ移しました。製品を販売しているサイトが無料のウェブメールを連絡先にしているのは、読み手が最初に気づく不整合です。'
+            '各ページの英語版・日本語版に、サイト内からリンクするようになりました。従来は手動で言語を切り替えるしかなく、検索エンジンからも事実上たどり着けませんでした。',
+            '言語の切り替えは実際のリンクになりました。新しいタブで開いたり、アドレスをコピーして共有したりできます。'
           ]
         }
       },
       {
-        title: { fa: 'ویدیوها و زبان‌ها، برای گوگل', en: 'Videos and languages, for Google', ja: '動画と言語の検索対応' },
+        title: { fa: 'روی موبایل و در متن‌ها', en: 'On phones, and in the wording', ja: 'スマートフォンと表記' },
         items: {
           fa: [
-            'هیچ‌کدام از ده کلیپ صفحه‌ی Unity DocSnap ایندکس نشده بود، به سه دلیل هم‌زمان. اول: robots.txt خط «Disallow: /video/» داشت، یعنی گوگل اصلاً اجازه نداشت فایل‌ها را بردارد. برداشته شد.',
-            'دوم: هیچ‌چیز روی صفحه نمی‌گفت این‌ها ویدیو هستند. حالا هر کلیپ یک VideoObject کامل دارد با آدرس فایل، مدت، تاریخ انتشار و تصویر شاخص؛ و ۲۸ ورودی ویدیو به sitemap اضافه شد (۹ فارسی، ۱۰ انگلیسی، ۹ ژاپنی).',
-            'سوم: فقط کلیپ اول داخل HTML بود و نُه‌تای دیگر با جاوااسکریپت جابه‌جا می‌شدند — یعنی خزنده روی صفحه‌ای با ده ویدیو، یکی می‌دید. لیست پخش به لینک واقعی تبدیل شد و پلیر دقیقاً مثل قبل کار می‌کند.',
-            'و مشکل بزرگ‌تر: هیچ لینکی در کل سایت به آدرس‌های /en/ و /ja/ وجود نداشت. سوییچر زبان یک دکمه‌ی جاوااسکریپتی بود. hreflang مکانیزم کشف نیست — یعنی دو سوم سایت هیچ لینک ورودی نداشت. سوییچر به لینک واقعی تبدیل شد و حالا هر صفحه به ترجمه‌ی خودش لینک می‌دهد.'
+            'صفحه‌های Unity DocSnap و Unity DirectTMP روی گوشی افقی می‌لغزیدند. درست شد.',
+            'چند جای سایت گفته بود همه‌چیز رایگان و متن‌باز است. این درست نبود: Unity DocSnap نسخه‌ی رایگان دارد و نسخه‌های خریدنی هم دارد، و متن‌باز نیست. Unity DirectTMP رایگان و متن‌باز است. متن‌ها اصلاح شدند.',
+            'آدرس تماس از یاهو به آدرس روی همین دامنه منتقل شد.'
           ],
           en: [
-            'None of the ten clips on the Unity DocSnap page had ever been indexed, for three reasons at once. First: robots.txt carried "Disallow: /video/", so Googlebot was never allowed to fetch the files at all. Removed.',
-            'Second: nothing on the page said these were videos. Every clip now has a full VideoObject with its file URL, duration, publication date and thumbnail; and 28 video entries were added to the sitemap (9 Persian, 10 English, 9 Japanese).',
-            'Third: only the first clip was in the HTML — the other nine were swapped in by JavaScript, so a crawler saw one video on a page that has ten. The playlist is real links now, and the player behaves exactly as it did.',
-            'And the larger one: nothing anywhere on the site linked to a /en/ or /ja/ address. The language switcher was a JavaScript button. hreflang is not a discovery mechanism, so two thirds of the site had no inbound links at all. The switcher is real links now, and every page links to its own translation.'
+            'The Unity DocSnap and Unity DirectTMP pages slid sideways on a phone. Fixed.',
+            'A few places on the site said everything here is free and open source. That was not true: Unity DocSnap has a free edition and paid ones, and it is not open source. Unity DirectTMP is free and open source. The wording now says so.',
+            'The contact address moved from a Yahoo account to one on this domain.'
           ],
           ja: [
-            'Unity DocSnap ページの 10 本のクリップは 1 本もインデックスされていませんでした。原因は 3 つ同時にありました。1 つ目は robots.txt の「Disallow: /video/」で、Googlebot はファイルを取得することすら許されていませんでした。これを削除しました。',
-            '2 つ目は、ページ上にこれらが動画であると示すものが何もなかったことです。各クリップにファイル URL・再生時間・公開日・サムネイルを含む VideoObject を追加し、sitemap にも 28 件の動画エントリを追加しました（ペルシャ語 9・英語 10・日本語 9）。',
-            '3 つ目は、HTML に含まれていたのが最初の 1 本だけで、残りの 9 本は JavaScript で差し替えられていたことです。クローラーには 10 本あるページが 1 本に見えていました。プレイリストを実際のリンクに変更し、プレイヤーの動作は以前のままです。',
-            'さらに大きな問題として、サイト内のどこからも /en/ や /ja/ のアドレスへリンクされていませんでした。言語切り替えが JavaScript のボタンだったためです。hreflang は発見の仕組みではないため、サイトの 3 分の 2 に被リンクが 1 つもない状態でした。切り替えを実際のリンクにし、各ページが自身の翻訳版へリンクするようになりました。'
-          ]
-        }
-      },
-      {
-        title: { fa: 'موبایل و پنل تست', en: 'Mobile, and the test panel', ja: 'モバイルとテストパネル' },
-        items: {
-          fa: [
-            'صفحه‌های Unity DocSnap و Unity DirectTMP روی موبایل واقعاً افقی اسکرول می‌شدند — ۱۱۰ و ۱۳۱ پیکسل — و چون راست‌به‌چپ‌اند، جابه‌جا باز می‌شدند. علت: جعبه‌ی آدرس گیت با flex-basis ثابت که کفی می‌ساخت باریک‌تر از آن نمی‌شد.',
-            'سه مورد دیگر روی صفحه‌های ۳۲۰ پیکسلی: گرید صفحه‌ی «درباره‌ی من» با کف ۳۲۰ پیکسل، و توکن‌های بلند بدون فاصله (شناسه‌ی پکیج اندروید، آدرس‌های طولانی) در یادداشت‌های انتشار و صفحه‌های سیاست. همه‌ی ۲۸ گرید سایت به کف انعطاف‌پذیر تغییر کردند.',
-            'پانزده تست جدید به /testsite اضافه شد: در دسترس بودن پنل ایمیل، رد کردن GET روی API، وضعیت migrationها، بسته بودن مسیر قدیمی /mail، و چهار تست فرم تماس — از جمله یکی که فیلد تله را عمداً پر می‌کند و باید رد شود.',
-            'همه‌ی تست‌های جدید فقط می‌خوانند یا رد شدن را بررسی می‌کنند. هیچ‌کدام ایمیل نمی‌فرستد، پوشه نمی‌سازد و کسی را مسدود نمی‌کند: این پنل روی سایت زنده اجرا می‌شود و مکاتبات واقعی جای آزمایش نیست.'
-          ],
-          en: [
-            'The Unity DocSnap and Unity DirectTMP pages genuinely panned sideways on a phone — by 110 and 131 pixels — and, being right-to-left, opened already displaced. The cause was the git URL box: a fixed flex-basis that acted as a floor nothing could shrink past.',
-            'Three more at 320px: the About page grid with a 320px floor, and unbreakable long tokens (an Android package id, long URLs) in the release notes and the policy pages. All 28 grids on the site were changed to a collapsible floor.',
-            'Fifteen new tests were added to /testsite: the mail panel answering, its API refusing GET, the migration state, the old /mail path being closed, and four contact-form checks — including one that fills the honeypot on purpose and must be refused.',
-            'Every new test only reads or asserts a refusal. None of them sends mail, creates a folder or blocks anybody: the panel runs against the live site, and real correspondence is not a fixture.'
-          ],
-          ja: [
-            'Unity DocSnap と Unity DirectTMP のページはスマートフォンで実際に横スクロールしていました（それぞれ 110px と 131px）。右から左のレイアウトのため、開いた時点ですでにずれていました。原因は git URL の入力欄で、固定の flex-basis がそれ以上縮まない下限として働いていたためです。',
-            '320px 幅ではさらに 3 か所：「私について」ページのグリッド（下限 320px）と、リリースノートおよびポリシーページ内の分割できない長い文字列（Android のパッケージ ID、長い URL）。サイト内 28 個のグリッドすべてを、縮められる下限に変更しました。',
-            '/testsite に 15 個のテストを追加しました。メールパネルの応答、API が GET を拒否すること、マイグレーションの状態、旧 /mail パスが閉じていること、そしてお問い合わせフォームの 4 項目（意図的にハニーポットを埋めて拒否されることを確認するものを含む）です。',
-            '新しいテストはすべて読み取りか拒否の確認のみです。メール送信・フォルダ作成・ブロックは一切行いません。このパネルは本番サイトに対して実行され、実際の通信はテスト用のデータではないからです。'
+            'Unity DocSnap と Unity DirectTMP のページがスマートフォンで横にずれていました。修正しました。',
+            'サイトのいくつかの箇所で「すべて無料でオープンソース」と書いていました。これは正しくありません。Unity DocSnap には無料版と有料版があり、オープンソースではありません。Unity DirectTMP は無料かつオープンソースです。表記を修正しました。',
+            '連絡先アドレスを Yahoo からこのドメイン上のアドレスに変更しました。'
           ]
         }
       }

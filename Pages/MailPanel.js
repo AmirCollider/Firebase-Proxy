@@ -143,6 +143,9 @@ const I18N = {
     cSending: 'در حال ارسال…',
     cCancel: 'انصراف',
     cFrom: 'فرستنده',
+    dirAuto: 'جهت خودکار',
+    dirRtl: 'راست‌چین',
+    dirLtr: 'چپ‌چین',
     cRich: 'ویرایشگر',
     cHtml: 'کد HTML',
     cPreview: 'پیش‌نمایش',
@@ -239,6 +242,9 @@ const I18N = {
     cSending: 'Sending…',
     cCancel: 'Cancel',
     cFrom: 'From',
+    dirAuto: 'Automatic direction',
+    dirRtl: 'Right to left',
+    dirLtr: 'Left to right',
     cRich: 'Editor',
     cHtml: 'HTML source',
     cPreview: 'Preview',
@@ -335,6 +341,9 @@ const I18N = {
     cSending: '送信中…',
     cCancel: 'キャンセル',
     cFrom: '差出人',
+    dirAuto: '自動判定',
+    dirRtl: '右から左',
+    dirLtr: '左から右',
     cRich: 'エディタ',
     cHtml: 'HTML ソース',
     cPreview: 'プレビュー',
@@ -803,16 +812,28 @@ function css(accentRgb) {
     padding: 7px 9px; border-radius: 7px; min-height: 34px; min-width: 34px;
   }
   .tools button:hover { background: var(--surface); }
+  .tools button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .tool-sep {
+    width: 1px; align-self: stretch; margin-inline: 4px;
+    background: var(--border); flex: none;
+  }
   .editor {
     border: 1px solid var(--border); border-radius: 0 0 10px 10px;
     background: var(--surface); padding: 15px; min-height: 260px;
     outline: none; overflow-wrap: anywhere; overflow-y: auto;
 
-    /* The composed message is LTR even on a Persian panel unless
-       the operator types Persian, in which case the browser's own
-       bidi handling gets it right per paragraph. Forcing rtl here
-       would mangle an English message written from a Persian UI. */
-    direction: ltr; text-align: start;
+    /* No direction is forced here, and the previous comment
+       claiming the browser would sort it out was wrong. CSS
+       direction sets a paragraph's BASE direction; bidi only
+       reorders runs inside that base. So a Persian message typed
+       into an editor pinned to ltr came out with its punctuation
+       on the wrong end, its bullets on the wrong side and every
+       line aligned left.
+       The element carries dir="auto" instead, which takes the base
+       direction from the first strong character - and the toolbar
+       has an explicit override for the cases auto reads wrong,
+       such as a Persian message that opens with a product name. */
+    text-align: start;
   }
   .editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .16); }
   .editor img { max-width: 100%; height: auto; }
@@ -822,6 +843,7 @@ function css(accentRgb) {
   }
   .source {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* Markup, not prose: this one really is left-to-right. */
     font-size: .84rem; direction: ltr; min-height: 300px;
   }
   .preview {
@@ -972,7 +994,14 @@ function renderPanel(lang, theme) {
     // and every redirect from this rather than from a literal, so
     // moving the panel does not leave the browser calling an
     // address the Worker stopped answering on.
-    path: CONFIG.MAIL.PATH
+    path: CONFIG.MAIL.PATH,
+
+    // Absolute, both of them. A message goes to somebody else's
+    // mail client, which has no origin to resolve a leading slash
+    // against - a site-relative logo is a broken image everywhere
+    // it lands.
+    site: CONFIG.SITE_URL,
+    logo: CONFIG.SITE_URL + CONFIG.AMIR_LOGO
   }).replace(/</g, '\\u003c')
 
   return `<!DOCTYPE html>
@@ -1052,6 +1081,7 @@ function panelScript() {
     blocks: [],
     folderColor: 'slate',
     editingFolder: null,
+    dir: 'auto',
     counts: { unread: 0, inbox: 0, sent: 0, starred: 0, archived: 0 },
     current: null,
     status: null,
@@ -1254,14 +1284,20 @@ function panelScript() {
   // absent, so the frame gets an opaque origin and can reach
   // nothing.
   // ==========================================
-  function frameFor(html) {
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+  function frameFor(html, dir) {
+    // dir="auto" on the body, so a Persian message renders
+    // right-to-left and an English one does not - without the
+    // panel having to guess which it is. A caller that knows
+    // better passes rtl or ltr.
+    var d = dir === 'rtl' || dir === 'ltr' ? dir : 'auto';
+
+    var doc = '<!DOCTYPE html><html dir="' + d + '"><head><meta charset="utf-8">'
       + '<meta name="viewport" content="width=device-width, initial-scale=1">'
       + '<base target="_blank">'
-      + '<style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;'
-      + 'line-height:1.6;color:#141a26;background:#fff;margin:0;padding:16px;'
+      + '<style>body{font-family:Vazirmatn,system-ui,-apple-system,Segoe UI,sans-serif;'
+      + 'line-height:1.7;color:#141a26;background:#fff;margin:0;padding:16px;'
       + 'overflow-wrap:anywhere}img{max-width:100%;height:auto}'
-      + 'table{max-width:100%}pre{overflow-x:auto}</style></head><body>'
+      + 'table{max-width:100%}pre{overflow-x:auto}</style></head><body dir="' + d + '">'
       + html + '</body></html>';
 
     return '<iframe class="msg-frame" sandbox="allow-popups allow-popups-to-escape-sandbox"'
@@ -1329,8 +1365,11 @@ function panelScript() {
 
     var html = message.html;
     var body = html
-      ? frameFor(html)
-      : '<div class="msg msg-text">' + esc(message.text || '') + '</div>';
+      // auto, so a Persian message that arrived from a real client
+      // reads right-to-left here as it does in the sender's own
+      // mail app.
+      ? frameFor(html, 'auto')
+      : '<div class="msg msg-text" dir="auto">' + esc(message.text || '') + '</div>';
 
     pane.innerHTML =
       '<div class="pane-head">'
@@ -1346,38 +1385,77 @@ function panelScript() {
   // ==========================================
   // Compose
   // ==========================================
+  // ==========================================
+  // The compose templates.
+  //
+  // Every one of them opens with the site's own logo. They did not
+  // before, which meant a message sent from this domain arrived
+  // looking like it came from nowhere - and the one visual thing a
+  // recipient uses to decide whether a licence email is genuine is
+  // whether it looks like the site they bought from.
+  //
+  // The logo is an ABSOLUTE url. A mail client has no origin to
+  // resolve "/assets/..." against, so a site-relative path renders
+  // as a broken image in every one of them.
+  //
+  // Styles are inline and the layout is a table-free single column,
+  // because that is the subset of HTML mail clients agree on.
+  // ==========================================
+  var LOGO = BOOT.logo;
+  var SITE = BOOT.site;
+
+  var HEADER =
+    '<div style="text-align:center;padding-bottom:18px">'
+    + '<img src="' + LOGO + '" width="56" height="56" alt="AmirCollider"'
+    +   ' style="width:56px;height:56px;border-radius:16px;display:inline-block">'
+    + '</div>';
+
+  var FOOTER =
+    '<p style="text-align:center;color:#8a92a6;font-size:12px;margin-top:22px;'
+    +   'padding-top:16px;border-top:1px solid #e6e9f2">'
+    + '<a href="' + SITE + '" style="color:#8a92a6;text-decoration:none">amircollider.com</a>'
+    + '</p>';
+
+  var SHELL_OPEN =
+    '<div style="max-width:600px;margin:0 auto;padding:24px;'
+    + 'font-family:Vazirmatn,system-ui,-apple-system,Segoe UI,sans-serif">';
+
   var TEMPLATES = {
     blank: '',
 
     plain:
-      '<p>Hello,</p><p><br></p><p>&nbsp;</p><p><br></p>'
-      + '<p>— ' + '{NAME}' + '<br><a href="https://amircollider.com">amircollider.com</a></p>',
+      SHELL_OPEN + HEADER
+      + '<p style="color:#141a26;line-height:1.8">Hello,</p>'
+      + '<p style="color:#141a26;line-height:1.8"><br></p>'
+      + '<p style="color:#141a26;line-height:1.8"><br></p>'
+      + '<p style="color:#3d4557;line-height:1.8">— {NAME}</p>'
+      + FOOTER + '</div>',
 
     notice:
-      '<div style="max-width:600px;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,sans-serif">'
+      SHELL_OPEN + HEADER
       + '<div style="background:#3d7bd9;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0">'
       +   '<h1 style="margin:0;font-size:20px">{NAME}</h1></div>'
       + '<div style="border:1px solid #dbe1ee;border-top:0;border-radius:0 0 12px 12px;padding:24px">'
       +   '<h2 style="margin:0 0 12px;font-size:17px;color:#141a26">Title here</h2>'
-      +   '<p style="margin:0 0 14px;color:#3d4557;line-height:1.7">Your message.</p>'
-      +   '<p style="margin:0"><a href="https://amircollider.com" '
+      +   '<p style="margin:0 0 14px;color:#3d4557;line-height:1.8">Your message.</p>'
+      +   '<p style="margin:0"><a href="' + SITE + '" '
       +     'style="display:inline-block;background:#3d7bd9;color:#fff;text-decoration:none;'
       +     'padding:11px 20px;border-radius:9px;font-weight:600">Open</a></p>'
       + '</div>'
-      + '<p style="text-align:center;color:#8a92a6;font-size:12px;margin-top:14px">'
-      +   'amircollider.com</p></div>',
+      + FOOTER + '</div>',
 
     delivery:
-      '<div style="max-width:600px;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,sans-serif">'
-      + '<h2 style="color:#141a26;font-size:19px">Thank you for your purchase</h2>'
-      + '<p style="color:#3d4557;line-height:1.7">Here is your download and your licence key.</p>'
-      + '<div style="background:#f4f6fb;border:1px solid #dbe1ee;border-radius:10px;padding:16px;margin:16px 0">'
+      SHELL_OPEN + HEADER
+      + '<h2 style="color:#141a26;font-size:19px;margin:0 0 12px">Thank you for your purchase</h2>'
+      + '<p style="color:#3d4557;line-height:1.8">Here is your download and your licence key.</p>'
+      + '<div style="background:#f4f6fb;border:1px solid #dbe1ee;border-radius:10px;padding:16px;margin:18px 0">'
       +   '<p style="margin:0 0 6px;font-size:12px;color:#5d6880;font-weight:600">LICENCE KEY</p>'
-      +   '<code style="font-size:15px;color:#141a26">PASTE-KEY-HERE</code></div>'
-      + '<p style="color:#3d4557;line-height:1.7">Install with Unity Package Manager, '
+      +   '<code style="font-size:15px;color:#141a26" dir="ltr">PASTE-KEY-HERE</code></div>'
+      + '<p style="color:#3d4557;line-height:1.8">Install with Unity Package Manager, '
       +   '<b>Add package from git URL</b>:<br>'
-      +   '<code>https://github.com/AmirCollider/UnityDocSnap.git</code></p>'
-      + '<p style="color:#8a92a6;font-size:13px">Reply to this email if anything is wrong.</p></div>'
+      +   '<code style="font-size:13px" dir="ltr">https://github.com/AmirCollider/UnityDocSnap.git</code></p>'
+      + '<p style="color:#8a92a6;font-size:13px">Reply to this email if anything is wrong.</p>'
+      + FOOTER + '</div>'
   };
 
   function composeHtml() {
@@ -1414,7 +1492,7 @@ function panelScript() {
       +   '<div id="richWrap">'
       +     '<div class="tools">' + toolbar(t) + '</div>'
       +     '<div class="editor" id="cEditor" contenteditable="true" role="textbox"'
-      +       ' aria-multiline="true" aria-label="' + esc(t.cBody) + '"></div>'
+      +       ' dir="auto" aria-multiline="true" aria-label="' + esc(t.cBody) + '"></div>'
       +   '</div>'
 
       +   '<textarea id="cSource" class="source" style="display:none"'
@@ -1451,6 +1529,25 @@ function panelScript() {
   // eleven buttons rendered the literal word NaN instead of their
   // glyph, and nothing threw. A list cannot express that mistake.
   // ==========================================
+  // The direction control, beside the formatting buttons.
+  //
+  // Auto is right almost always; the exception is a Persian message
+  // that happens to open with a Latin product name, where the first
+  // strong character is Latin and auto picks ltr for the whole
+  // paragraph. That case is common enough on this mailbox - half
+  // the mail is about "Unity DocSnap" - to need one click rather
+  // than a workaround.
+  function dirButtons(t) {
+    return ['auto', 'rtl', 'ltr'].map(function (mode) {
+      return '<button type="button" onclick="MAIL.setDir(\'' + mode + '\')"'
+        + ' data-dir="' + mode + '"'
+        + ' aria-pressed="' + (state.dir === mode ? 'true' : 'false') + '"'
+        + ' title="' + esc(t['dir' + mode.charAt(0).toUpperCase() + mode.slice(1)]) + '">'
+        + (mode === 'auto' ? 'A' : mode === 'rtl' ? '\u2192\u06F0' : '\u06F0\u2190')
+        + '</button>';
+    }).join('');
+  }
+
   function toolbar(t) {
     return [
       ['bold', 'B', t.bold],
@@ -1464,7 +1561,9 @@ function panelScript() {
       ['image', '\u{1F5BC}', t.image],
       ['hr', '\u2014', t.hr],
       ['clear', '\u232B', t.clear]
-    ].map(function (row) { return tool(row[0], row[1], row[2]); }).join('');
+    ].map(function (row) { return tool(row[0], row[1], row[2]); }).join('')
+      + '<span class="tool-sep" aria-hidden="true"></span>'
+      + dirButtons(t);
   }
 
   // ==========================================
@@ -1639,6 +1738,7 @@ function panelScript() {
     compose: function (prefill) {
       state.composing = true;
       state.mode = 'rich';
+      state.dir = (prefill && prefill.dir) || 'auto';
       el('shell').classList.add('reading');
       el('pane').innerHTML = composeHtml();
       paintRail();
@@ -1689,7 +1789,7 @@ function panelScript() {
       source.style.display = next === 'html' ? '' : 'none';
       preview.style.display = next === 'preview' ? '' : 'none';
 
-      if (next === 'preview') preview.innerHTML = frameFor(editor.innerHTML);
+      if (next === 'preview') preview.innerHTML = frameFor(editor.innerHTML, state.dir);
 
       Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-mode') === next ? 'true' : 'false');
@@ -1700,7 +1800,7 @@ function panelScript() {
       var html = (TEMPLATES[key] || '').split('{NAME}').join(BOOT.name || 'AmirCollider');
       if (state.mode === 'html') el('cSource').value = html;
       else el('cEditor').innerHTML = html;
-      if (state.mode === 'preview') el('cPreview').innerHTML = frameFor(html);
+      if (state.mode === 'preview') el('cPreview').innerHTML = frameFor(html, state.dir);
     },
 
     // ==========================================
@@ -1751,6 +1851,14 @@ function panelScript() {
       var msg = el('cMsg');
       var html = state.mode === 'html' ? el('cSource').value : el('cEditor').innerHTML;
 
+      // The direction travels WITH the message. Getting it right in
+      // this editor and then sending bare HTML would mean the
+      // recipient's client re-guesses it - and most of them guess
+      // ltr, which is the whole bug.
+      if (html && html.indexOf('<div dir=') !== 0) {
+        html = '<div dir="' + (state.dir === 'auto' ? 'auto' : state.dir) + '">' + html + '</div>';
+      }
+
       btn.disabled = true;
       msg.className = 'send-msg';
       msg.textContent = t.cSending;
@@ -1788,6 +1896,20 @@ function panelScript() {
       el('shell').classList.add('reading');
       el('pane').innerHTML = manageHtml();
       paintRail();
+    },
+
+    setDir: function (mode) {
+      state.dir = mode;
+      var editor = el('cEditor');
+      if (editor) editor.setAttribute('dir', mode);
+
+      Array.prototype.forEach.call(document.querySelectorAll('[data-dir]'), function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-dir') === mode ? 'true' : 'false');
+      });
+
+      if (state.mode === 'preview') {
+        el('cPreview').innerHTML = frameFor(el('cEditor').innerHTML, mode);
+      }
     },
 
     pickColor: function (color) {

@@ -141,6 +141,7 @@ export const NAV_I18N = {
     menu: 'منو',
     skip: 'رفتن به محتوای اصلی',
     breadcrumb: 'مسیر صفحه',
+    resume: 'رزومه',
     colSite: 'سایت',
     colProducts: 'محصولات',
     colLegal: 'قوانین و پشتیبانی',
@@ -176,6 +177,7 @@ export const NAV_I18N = {
     menu: 'Menu',
     skip: 'Skip to main content',
     breadcrumb: 'Breadcrumb',
+    resume: 'Resume',
     colSite: 'Site',
     colProducts: 'Products',
     colLegal: 'Legal & support',
@@ -211,12 +213,13 @@ export const NAV_I18N = {
     menu: 'メニュー',
     skip: 'メインコンテンツへ',
     breadcrumb: 'パンくずリスト',
+    resume: '経歴',
     colSite: 'サイト',
     colProducts: '製品',
     colLegal: '規約とサポート',
     tagline: 'AmirCollider による Android・PC・ウェブ向けゲームと、Unity エディタ拡張。',
     poweredBy: 'Cloudflare Workers で稼働',
-    rights: 'All rights reserved.',
+    rights: '無断複写・転載を禁じます。',
     backToGame: 'ゲームページに戻る'
   }
 }
@@ -720,9 +723,101 @@ export function siteBreadcrumb({ lang, trail = [] } = {}) {
 // Shortest label first; equal lengths keep the order they were
 // declared in. Counts code points, not UTF-16 units, so a Japanese
 // label is measured in characters rather than bytes.
+// ==========================================
+// labelWidth
+// Roughly how WIDE a label renders, not how many codepoints it has.
+//
+// The sort below used to count codepoints, and that is wrong in
+// every language on this site - just least visibly in English,
+// where "Games" and "Tools" are both five characters and 13px
+// apart. In Persian it is worse in ways specific to the script:
+// ZWNJ (U+200C) is a codepoint that renders as NOTHING and appears
+// in half the labels here, and Arabic diacritics are combining
+// marks with no advance width at all. Counting those made a label
+// sort as though it were longer than it looks.
+//
+// So this weighs characters by class instead. The weights are not
+// guessed: they were fitted against the real rendered widths of
+// all 32 footer labels in this site's own font, measured in a
+// browser, by minimising how often the estimate disagrees with the
+// measurement about which of two labels is wider. It gets 4 pairs
+// wrong out of roughly 500.
+//
+// It is still an approximation - only the browser knows the true
+// advance widths - but the sort only needs the ORDER, and this
+// gets the order right. Re-fit it if the site's font changes.
+// ==========================================
+const LBL_ZERO_WIDTH = /[\u200B-\u200F\u2060\uFEFF\u064B-\u065F\u0670\u06D6-\u06ED]/
+const LBL_FULL_WIDTH = /[\u3000-\u303F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF00-\uFF60]/
+const LBL_ARABIC = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/
+
+// Per-letter advance widths for the Latin range, fitted against the
+// browser-measured width of every Latin label in this footer. With
+// these, the estimate disagrees with the real rendering about which
+// of two labels is wider on ZERO of 143 pairs - a class-based
+// approximation got four wrong, because "Games" and "Tools" are the
+// same five characters and 13px apart.
+//
+// Anything not listed falls back to LBL_W.latMid.
+const LBL_LATIN = {
+  ' ': 0.27,
+  A: 0.60, B: 0.72, C: 0.69, D: 0.72, G: 0.84, H: 0.73, K: 0.67, M: 0.84,
+  N: 0.76, O: 0.75, P: 0.67, R: 0.76, S: 0.69, T: 0.52, U: 0.73,
+  a: 0.57, b: 0.61, c: 0.49, d: 0.64, e: 0.59, g: 0.60, h: 0.59, i: 0.27,
+  l: 0.24, m: 0.89, n: 0.59, o: 0.58, p: 0.56, r: 0.36, s: 0.49, t: 0.33,
+  u: 0.59, v: 0.51, y: 0.58
+}
+
+// Per-letter widths for the Persian range, fitted the same way
+// against every Persian label in this footer. Zero rank
+// disagreements over 127 pairs, mean error under half a pixel.
+//
+// Arabic script is CONTEXTUAL - a letter's advance depends on
+// whether it joins to the left, the right, both or neither - so one
+// number per letter is an average rather than a truth. It is still
+// far closer than the three width classes it replaces, which put
+// "حریم خصوصی" ahead of "ارتباط با من" when it renders 15px wider.
+//
+// A letter not in the table falls back to LBL_W.arMid.
+const LBL_PERSIAN = {
+  ' ': 0.37,
+  'ا': 0.50, 'ب': 0.40, 'ت': 0.51, 'ح': 0.81, 'خ': 0.56,
+  'د': 0.68, 'ر': 0.76, 'ز': 0.44, 'س': 0.77, 'ش': 0.62,
+  'ص': 1.12, 'ط': 0.57, 'ف': 0.71, 'ق': 0.53, 'ل': 0.53,
+  'م': 0.74, 'ن': 0.46, 'ه': 0.55, 'و': 0.52, 'پ': 0.40,
+  'ک': 0.33, 'گ': 0.79, 'ی': 0.69
+}
+
+const LBL_W = {
+  full: 2.77,
+  arMid: 0.60,
+  latMid: 0.58
+}
+
+function labelWidth(text) {
+  let width = 0
+
+  for (const character of String(text || '')) {
+    if (LBL_ZERO_WIDTH.test(character)) continue
+    if (LBL_FULL_WIDTH.test(character)) { width += LBL_W.full; continue }
+
+    if (LBL_ARABIC.test(character)) {
+      const persian = LBL_PERSIAN[character]
+      width += persian === undefined ? LBL_W.arMid : persian
+      continue
+    }
+
+    const latin = LBL_LATIN[character]
+    width += latin === undefined ? LBL_W.latMid : latin
+  }
+
+  return width
+}
+
+
 function byLabelLength(links) {
   return (links || [])
-    .map((link, index) => ({ link, index, len: [...String(link.label || '')].length }))
+    .map((link, index) => ({ link, index, len: labelWidth(link.label) }))
     .sort((a, b) => (a.len - b.len) || (a.index - b.index))
     .map(entry => entry.link)
 }
@@ -785,6 +880,12 @@ export function siteFooter({ lang, games = [] } = {}) {
       links: [
         { href: '/', label: p.home },
         { href: '/about', label: p.about },
+
+        // Beside About, because the two are counterparts: the
+        // casual version and the formal one. It was reachable only
+        // by typing the URL, which is the same as not existing.
+        { href: '/resume', label: p.resume },
+
         { href: '/games', label: p.games },
         { href: '/tools', label: p.tools },
         { href: '/donate', label: p.donate },

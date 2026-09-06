@@ -30,7 +30,7 @@
 // ==========================================
 
 import { CONFIG } from '../Config.js'
-import { getPageHead } from '../Core/DesignSystem.js'
+import { getPageHead, pageFoundationCss } from '../Core/DesignSystem.js'
 import { createHtmlResponse, createJsonResponse, clientIp } from '../Core/Http.js'
 import { escapeHtml } from '../Core/Html.js'
 import { logInfo, logWarning } from '../Core/Logging.js'
@@ -641,10 +641,10 @@ function css() {
     .ct-wrap { max-width: 720px; margin-inline: auto; padding: 0 4px; }
     .ct-head { margin-block: 26px 22px; }
     .ct-head h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); font-weight: 800; letter-spacing: -.01em; }
-    .ct-head p { color: var(--text-dim, #5d6880); margin-top: 10px; line-height: 1.8; }
+    .ct-head p { color: var(--text-dim); margin-top: 10px; line-height: 1.8; }
 
     .ct-card {
-      background: var(--surface, #fff); border: 1px solid var(--border, #dbe1ee);
+      background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: clamp(18px, 4vw, 30px);
       box-shadow: 0 2px 14px rgba(20, 26, 38, .06);
     }
@@ -652,10 +652,10 @@ function css() {
     .ct-field { display: block; margin-bottom: 18px; min-width: 0; }
     .ct-field > span {
       display: block; font-size: .84rem; font-weight: 700;
-      color: var(--text, #141a26); margin-bottom: 7px;
+      color: var(--text); margin-bottom: 7px;
     }
     .ct-field small {
-      display: block; color: var(--text-dim, #5d6880);
+      display: block; color: var(--text-dim);
       font-size: .78rem; margin-top: 6px; line-height: 1.6;
     }
 
@@ -665,8 +665,8 @@ function css() {
     .ct-card select {
       width: 100%; font: inherit; font-size: 1rem; min-height: 46px;
       padding: 12px 14px; border-radius: 11px;
-      border: 1px solid var(--border, #dbe1ee);
-      background: var(--surface-2, #f4f6fb); color: var(--text, #141a26);
+      border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text);
       outline: none; transition: border-color .16s ease, box-shadow .16s ease;
     }
     @media (max-width: 720px) {
@@ -674,77 +674,98 @@ function css() {
     }
     .ct-card textarea { min-height: 190px; resize: vertical; line-height: 1.7; }
     .ct-card input:focus, .ct-card textarea:focus, .ct-card select:focus {
-      border-color: var(--brand, #3d7bd9);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, #3d7bd9) 18%, transparent);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
     }
 
     /* The topic buttons. Radios, styled - so the choice survives a
        page without JavaScript and is announced as a radio group. */
     .ct-topics { display: flex; flex-wrap: wrap; gap: 8px; }
-    .ct-topics label {
-      cursor: pointer; border: 1px solid var(--border, #dbe1ee); border-radius: 999px;
-      padding: 9px 15px; font-size: .86rem; font-weight: 600; min-height: 40px;
-      display: inline-flex; align-items: center;
-      background: var(--surface-2, #f4f6fb); color: var(--text-dim, #5d6880);
-      transition: background .16s ease, color .16s ease, border-color .16s ease;
-    }
+    /* The label is only the hit area; the span inside it is the
+       pill that is seen. Styling both gave every topic a pill
+       drawn inside another pill. */
+    .ct-topics label { cursor: pointer; display: inline-flex; }
     .ct-topics input { position: absolute; opacity: 0; width: 0; height: 0; }
     .ct-topics input:checked + span {
-      background: var(--brand, #3d7bd9); border-color: var(--brand, #3d7bd9); color: #fff;
+      background: var(--brand); border-color: var(--brand); color: #fff;
     }
     .ct-topics span {
-      border: 1px solid var(--border, #dbe1ee); border-radius: 999px;
+      border: 1px solid var(--border); border-radius: 999px;
       padding: 9px 15px; font-size: .86rem; font-weight: 600;
       display: inline-flex; align-items: center; min-height: 40px;
-      background: var(--surface-2, #f4f6fb); color: var(--text-dim, #5d6880);
+      background: var(--surface-2); color: var(--text-dim);
       transition: background .16s ease, color .16s ease, border-color .16s ease;
     }
-    .ct-topics input:focus-visible + span { outline: 2px solid var(--brand, #3d7bd9); outline-offset: 2px; }
+    .ct-topics input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
 
     /* The honeypot. Not display:none - some bots skip hidden
        fields on the assumption that they are traps, and some
-       screen readers announce a display:none field anyway. Moved
-       off-screen, taken out of the tab order, and told not to
-       autocomplete, it is invisible to a person using the page in
-       any normal way and present in the DOM for a bot that walks
-       inputs. aria-hidden keeps it out of the accessibility tree. */
+       screen readers announce a display:none field anyway. Taken
+       out of the tab order and told not to autocomplete, it is
+       invisible to a person using the page in any normal way and
+       present in the DOM for a bot that walks inputs. aria-hidden
+       keeps it out of the accessibility tree.
+
+       It is CLIPPED rather than pushed off-screen, and that is
+       the whole point of this rule. The usual trick is a
+       left of minus 9999 pixels. In a left-to-right document a
+       browser does not make room for overflow past the left edge,
+       so it costs nothing and nobody notices. In a RIGHT-to-left
+       document that edge is the inline END, and the browser
+       scrolls to it: the Persian contact page could be dragged
+       nearly ten thousand pixels sideways, which on a phone is a
+       page that will not sit still. A one-pixel box with its
+       contents clipped occupies no space in either direction. */
     .ct-hp {
-      position: absolute; left: -9999px; top: auto;
-      width: 1px; height: 1px; overflow: hidden;
+      position: absolute; width: 1px; height: 1px;
+      margin: -1px; padding: 0; border: 0;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+    }
+
+    /* The real file input, hidden behind the drop zone that opens
+       it. Same clipping as the honeypot and for the same reason:
+       an off-screen offset here made the Persian page scroll
+       sideways just as surely as the honeypot did. It must stay in
+       the DOM and stay focusable - the drop zone calls click() on
+       it - so it cannot be display:none. */
+    .ct-vh {
+      position: absolute; width: 1px; height: 1px;
+      margin: -1px; padding: 0; border: 0;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap;
     }
 
     .ct-files { display: grid; gap: 10px; }
     .ct-drop {
-      border: 1.5px dashed var(--border, #dbe1ee); border-radius: 12px;
+      border: 1.5px dashed var(--border); border-radius: 12px;
       padding: 18px; text-align: center; cursor: pointer;
-      background: var(--surface-2, #f4f6fb); color: var(--text-dim, #5d6880);
+      background: var(--surface-2); color: var(--text-dim);
       font-size: .88rem; min-height: 60px;
       display: flex; align-items: center; justify-content: center;
       transition: border-color .16s ease, background .16s ease;
     }
-    .ct-drop:hover { border-color: var(--brand, #3d7bd9); }
+    .ct-drop:hover { border-color: var(--brand); }
     .ct-thumbs { display: flex; flex-wrap: wrap; gap: 10px; }
     .ct-thumb { position: relative; width: 92px; }
     .ct-thumb img {
       width: 92px; height: 92px; object-fit: cover; border-radius: 10px;
-      border: 1px solid var(--border, #dbe1ee); display: block;
+      border: 1px solid var(--border); display: block;
     }
     .ct-thumb button {
       position: absolute; inset-block-start: -7px; inset-inline-end: -7px;
       width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
-      border: 1px solid var(--border, #dbe1ee); background: var(--surface, #fff);
-      color: var(--text, #141a26); font: inherit; font-size: .8rem; line-height: 1;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font: inherit; font-size: .8rem; line-height: 1;
       display: grid; place-items: center;
     }
     .ct-thumb span {
-      display: block; font-size: .68rem; color: var(--text-dim, #5d6880);
+      display: block; font-size: .68rem; color: var(--text-dim);
       margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
     .ct-send {
       appearance: none; border: 0; cursor: pointer; font: inherit;
       font-size: 1rem; font-weight: 700; padding: 14px 26px; border-radius: 12px;
-      color: #fff; background: var(--brand, #3d7bd9); min-height: 50px;
+      color: #fff; background: var(--brand); min-height: 50px;
       transition: filter .16s ease, transform .16s ease;
     }
     .ct-send:hover { filter: brightness(1.07); }
@@ -757,7 +778,7 @@ function css() {
 
     .ct-done {
       text-align: center; padding: 34px 20px;
-      background: var(--surface, #fff); border: 1px solid var(--border, #dbe1ee);
+      background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px;
     }
     .ct-done .mark {
@@ -766,14 +787,14 @@ function css() {
       background: #1a8a5a;
     }
     .ct-done h2 { font-size: 1.25rem; font-weight: 800; }
-    .ct-done p { color: var(--text-dim, #5d6880); margin: 10px auto 20px; max-width: 420px; line-height: 1.8; }
+    .ct-done p { color: var(--text-dim); margin: 10px auto 20px; max-width: 420px; line-height: 1.8; }
 
     .ct-alt {
       margin-block: 26px 40px; padding: 18px 20px; border-radius: 14px;
-      background: var(--surface-2, #f4f6fb); border: 1px solid var(--border, #dbe1ee);
+      background: var(--surface-2); border: 1px solid var(--border);
     }
     .ct-alt h2 { font-size: .95rem; font-weight: 800; margin-bottom: 8px; }
-    .ct-alt p { color: var(--text-dim, #5d6880); font-size: .86rem; line-height: 1.8; }
+    .ct-alt p { color: var(--text-dim); font-size: .86rem; line-height: 1.8; }
     .ct-alt a { font-weight: 700; overflow-wrap: anywhere; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -826,7 +847,7 @@ function renderPage(lang, theme, token) {
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap"></noscript>
   ${themeBootScript()}
-  <style>${siteNavCss()}${css()}</style>
+  <style>${pageFoundationCss({ maxWidth: '760px' })}${siteNavCss()}${css()}</style>
 </head>
 <body>
   ${siteHeader({ lang, path: PAGE_PATH })}
@@ -846,7 +867,8 @@ function renderPage(lang, theme, token) {
             The honeypot. A person never sees this and never fills
             it in; a bot that completes every input it finds does.
             See the note on .ct-hp in the stylesheet for why it is
-            positioned off-screen rather than display:none.
+            clipped rather than display:none, and why clipping
+            rather than an off-screen offset.
           -->
           <div class="ct-hp" aria-hidden="true">
             <label>Website
@@ -888,9 +910,8 @@ function renderPage(lang, theme, token) {
             <span>${escapeHtml(t.files)}</span>
             <div class="ct-files">
               <div class="ct-drop" id="ctDrop" role="button" tabindex="0">${escapeHtml(t.filesPick)}</div>
-              <input type="file" name="files" id="ctFiles" multiple
-                     accept="${CONFIG.CONTACT.ALLOWED_TYPES.join(',')}"
-                     style="position:absolute;left:-9999px;width:1px;height:1px">
+              <input type="file" name="files" id="ctFiles" multiple class="ct-vh"
+                     accept="${CONFIG.CONTACT.ALLOWED_TYPES.join(',')}">
               <div class="ct-thumbs" id="ctThumbs"></div>
             </div>
             <small>${escapeHtml(t.filesHint(CONFIG.CONTACT.MAX_FILES, megabytes))}</small>
@@ -1028,7 +1049,7 @@ function clientScript(t, lang) {
   ['dragenter', 'dragover'].forEach(function (name) {
     drop.addEventListener(name, function (event) {
       event.preventDefault();
-      drop.style.borderColor = 'var(--brand, #3d7bd9)';
+      drop.style.borderColor = 'var(--brand)';
     });
   });
   ['dragleave', 'drop'].forEach(function (name) {

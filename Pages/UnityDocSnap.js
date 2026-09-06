@@ -197,6 +197,7 @@ const I18N = {
     spotlightTitle: 'یک فایل، کل پروژه، آماده‌ی دستیار هوش مصنوعی',
     spotlightBody: 'کنار سایت HTML، یک پوشه‌ی summary/ نوشته می‌شود: خلاصه‌ی کوتاه و ساختارمند هر سین و هر پوشه، هم مارک‌داون هم جیسون. و ai-bundle.md همه‌شان را می‌کند یک سند. یعنی به‌جای چهل تا اسکرین‌شات یا نصف ساعت توضیح دادن، یک پیست.',
     spotlightTier: 'این و صفحه‌ی تغییرات، هر دو توی نسخه‌ی Plus هستند — ' + '$' + PLUS.price + '.',
+    treeNote: '← همه‌ی چیزی که پایین‌تر هست، در یک فایل',
 
     tierFreeName: 'رایگان',
     tierFreePitch: 'کل اکسپورتر. بدون کد، بدون حساب کاربری، بدون اینترنت.',
@@ -319,6 +320,7 @@ const I18N = {
     spotlightTitle: 'One file, your whole project, ready for an AI assistant',
     spotlightBody: 'Alongside the HTML site you get a summary/ folder: a short, structured summary of every Scene and folder in both Markdown and JSON. ai-bundle.md concatenates all of them into one document — so handing a whole project to an assistant is one paste instead of forty screenshots or half an hour of explaining.',
     spotlightTier: 'This and the Changes page are both in Plus — $' + PLUS.price + '.',
+    treeNote: '← everything below, in one paste',
 
     tierFreeName: 'Free',
     tierFreePitch: 'The whole exporter. No key, no account, no network.',
@@ -441,6 +443,7 @@ const I18N = {
     spotlightTitle: '1 ファイルで、プロジェクト全体を AI に渡せる',
     spotlightBody: 'HTML サイトに加えて summary/ フォルダを出力します。各シーンとフォルダの短く構造化された要約を Markdown と JSON の両方で書き出し、ai-bundle.md がそれらを 1 つの文書にまとめます。スクリーンショットを何十枚も送ったり 30 分かけて説明したりする代わりに、1 回の貼り付けで済みます。',
     spotlightTier: 'これと変更ページは、どちらも Plus($' + PLUS.price + ')に含まれます。',
+    treeNote: '← 以下すべてを 1 つに',
 
     tierFreeName: '無料版',
     tierFreePitch: 'エクスポーターのすべて。キーもアカウントもネットワークも不要。',
@@ -1146,7 +1149,7 @@ function renderSpotlight(p) {
           <p class="spot-tier">${escapeHtml(p.spotlightTier)}</p>
         </div>
         <pre class="tree" dir="ltr"><code>summary/
-├── ai-bundle.md          <span class="c">← everything below, in one paste</span>
+├── ai-bundle.md          <span class="c">${escapeHtml(p.treeNote)}</span>
 ├── scene-MainMenu.md
 ├── scene-MainMenu.json
 ├── folder-Art_Textures.md

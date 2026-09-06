@@ -301,6 +301,32 @@ function aboutCss() {
     .ab-fact span.ab-ic { font-size: 1.4em; line-height: 1.4; flex: none; }
     .ab-fact p { font-size: 0.93em; line-height: 1.8; }
 
+    /* ---------- the pointer to /resume ----------
+       A band, not a card in the flow: it is navigation sitting
+       inside a narrative page, and it should read as a different
+       kind of thing from the paragraphs around it. */
+    .ab-resume {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; flex-wrap: wrap; margin-block: 30px;
+      padding: 22px 26px; border-radius: var(--radius, 18px);
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--brand, #6c63ff) 16%, transparent),
+        color-mix(in srgb, var(--brand, #6c63ff) 6%, transparent));
+      border: 1px solid color-mix(in srgb, var(--brand, #6c63ff) 32%, var(--border, rgba(255,255,255,.12)));
+    }
+    .ab-resume > div { min-width: 0; flex: 1 1 min(100%, 300px); }
+    .ab-resume h2 { font-size: 1.02em; font-weight: 800; margin: 0 0 6px; border: 0; padding: 0; }
+    .ab-resume p { color: var(--text-dim); font-size: 0.9em; line-height: 1.8; margin: 0; }
+    .ab-resume-cta {
+      flex: none; display: inline-flex; align-items: center; min-height: 46px;
+      padding: 12px 24px; border-radius: 13px; text-decoration: none;
+      font-weight: 700; font-size: 0.92em; color: #fff;
+      background: linear-gradient(135deg, var(--brand, #6c63ff),
+        color-mix(in srgb, var(--brand, #6c63ff) 55%, #a78bfa));
+      transition: transform 0.18s ease;
+    }
+    .ab-resume-cta:hover { transform: translateY(-2px); }
+
     /* ---------- the accounts ----------
        Named links rather than bare icons, unlike the footer. The
        footer's row is chrome a reader skims; this one is content,
@@ -381,6 +407,34 @@ function renderHero(p) {
       <p><span class="ab-role">${escapeHtml(p.role)}</span></p>
       <p class="ab-intro">${escapeHtml(p.intro)}</p>
     </header>`
+}
+
+
+// ==========================================
+// renderResumeLink
+// The pointer to /resume.
+//
+// This page and that one are the same person in two registers, and
+// until now only one of them was reachable: the resume had no link
+// anywhere on the site, so it existed only for somebody who
+// already knew the URL. A studio lead who lands here looking for a
+// CV should not have to guess.
+//
+// It sits directly under the hero rather than at the foot of the
+// page, because that is where a reader is standing when they work
+// out that this page is not the formal one.
+// ==========================================
+function renderResumeLink(p, code) {
+  return `
+    <section class="ab-resume">
+      <div>
+        <h2>${escapeHtml(p.resumeHead)}</h2>
+        <p>${escapeHtml(p.resumeBody)}</p>
+      </div>
+      <a class="ab-resume-cta" href="${escapeHtml(localizedPath('/resume', code))}">
+        ${escapeHtml(p.resumeCta)}
+      </a>
+    </section>`
 }
 
 
@@ -594,6 +648,7 @@ function createAboutPage(lang, theme) {
     ${siteBreadcrumb({ lang: resolved, trail })}
     <main id="main">
       ${renderHero(p)}
+      ${renderResumeLink(p, resolved)}
       ${renderRequest(p)}
       ${renderProse(p.storyHead, p.story)}
       ${renderProse(p.learningHead, p.learning)}

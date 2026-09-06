@@ -67,6 +67,9 @@ export const ABOUT = {
     privacyBody: 'ترجیح می‌دم اسم و سن و محل زندگیم مخفی بمونه. مرسی که درک می‌کنی! 🙏',
     privacyAside: 'اگه توی دنیای واقعی من رو می‌شناسی — به‌عنوان همکار، فامیل، دوست یا هر چیز دیگه‌ای — و اسم و سنم رو می‌دونی، خیلی خوشحال می‌شم موقع معرفی من به بقیه فقط از اسم AmirCollider استفاده کنی.',
 
+    resumeHead: 'دنبال نسخه‌ی رسمی هستی؟',
+    resumeBody: 'این صفحه خودمانی است. اگر برای کار یا همکاری آمده‌ای، کارنامه‌ی رسمی — پروژه‌ها، سطح مهارت‌ها و مدارک — صفحه‌ی جداگانه‌ای دارد.',
+    resumeCta: 'رفتن به رزومه',
     storyHead: 'از کجا شروع شد',
     story: [
       'از بچگی عاشق سه چیز بودم: بازی کردن، بازی ساختن، و تولید محتوا. اون‌قدر پای گوشی و کامپیوتر بودم که کم‌کم دیگه بازی کردن برام کافی نبود.',
@@ -195,6 +198,9 @@ export const ABOUT = {
     privacyBody: 'I would rather keep my name, my age and where I live private. Thank you for understanding! 🙏',
     privacyAside: 'If you know me in real life — as a colleague, a relative, a friend, anything — and you know my name and age, I would be really glad if you introduced me to other people as AmirCollider and nothing else.',
 
+    resumeHead: 'Looking for the formal version?',
+    resumeBody: 'This page is the casual one. If you are here about work or a collaboration, the resume — projects, skill levels and certificates — is a separate page.',
+    resumeCta: 'Open the resume',
     storyHead: 'Where it started',
     story: [
       'Ever since I was a kid I have loved three things: playing games, making them, and making content. I spent so much time on a phone and a computer that playing eventually stopped being enough.',
@@ -323,6 +329,9 @@ export const ABOUT = {
     privacyBody: '本名・年齢・住んでいる場所は伏せさせてください。ご理解ありがとうございます! 🙏',
     privacyAside: 'もし現実世界で私をご存じの方 — 同僚、親戚、友人、どんな関係であれ — で名前や年齢を知っている方は、他の人に紹介するときは「AmirCollider」とだけ呼んでいただけるととても嬉しいです。',
 
+    resumeHead: '正式な経歴をお探しですか?',
+    resumeBody: 'このページはくだけた内容です。お仕事やご協業でお越しの場合は、制作物・スキルレベル・資格をまとめた経歴ページを別にご用意しています。',
+    resumeCta: '経歴を見る',
     storyHead: '始まりの話',
     story: [
       '子どもの頃から、遊ぶこと・作ること・発信することの 3 つが大好きでした。スマホとパソコンに向かう時間があまりに長くて、そのうち遊ぶだけでは足りなくなりました。',

@@ -571,3 +571,134 @@ export function getPageHead({ title, amirLogo, description = '' }) {
   ${description ? `<meta name="description" content="${description}">` : ''}
   `
 }
+
+
+// ==========================================
+// pageFoundationCss
+// The tokens, the theme variants and the body every page needs.
+//
+// Why this exists as a shared export
+//
+// Every page in Pages/ opens its stylesheet with the same forty
+// lines: a :root token block, the same block again under
+// prefers-color-scheme, again under [data-theme="light"], again
+// under [data-theme="dark"], and a body rule with the radial
+// gradient and the Vazirmatn stack. Copied nine times, it had
+// already drifted - and a page that FORGETS it does not look
+// slightly off, it renders as black serif text on white with no
+// background at all, because siteNavCss() styles the navigation
+// and nothing else. That is exactly what happened to the resume
+// and contact pages, and it is not a mistake worth leaving
+// available to the next page.
+//
+// A caller passes its own accent when it has one; the default is
+// the site brand.
+//
+//   <style>${pageFoundationCss()}${siteNavCss()}${myPageCss()}</style>
+//
+// Foundation FIRST, so a page can override any token it wants
+// afterwards - which is how the game pages tint themselves.
+// ==========================================
+export function pageFoundationCss({ brand = '#6c63ff', maxWidth = '940px' } = {}) {
+  return `
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scrollbar-width: none; -ms-overflow-style: none;
+      -webkit-text-size-adjust: 100%;
+    }
+    html::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+    :root {
+      --brand: ${brand};
+      --brand-rgb: ${rgbTriplet(brand, '108, 99, 255')};
+      --accent: ${brand};
+      --radius: 18px;
+      --maxw: ${maxWidth};
+
+      --ok: #4caf50;
+      --warn: #ff9800;
+      --err: #f44336;
+
+      --bg-1: #0b0e16;
+      --bg-2: #141a2e;
+      --surface: rgba(255,255,255,0.045);
+      --surface-2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --text-dim: rgba(255,255,255,0.58);
+      --muted: rgba(255,255,255,0.42);
+      color-scheme: dark;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --bg-1: #f4f6fb;
+        --bg-2: #e7ecf7;
+        --surface: rgba(255,255,255,0.70);
+        --surface-2: #ffffff;
+        --border: rgba(20,22,33,0.10);
+        --text: rgba(22,24,33,0.92);
+        --text-dim: rgba(22,24,33,0.56);
+        --muted: rgba(22,24,33,0.45);
+        color-scheme: light;
+      }
+    }
+
+    :root[data-theme="light"] {
+      --bg-1: #f4f6fb;
+      --bg-2: #e7ecf7;
+      --surface: rgba(255,255,255,0.70);
+      --surface-2: #ffffff;
+      --border: rgba(20,22,33,0.10);
+      --text: rgba(22,24,33,0.92);
+      --text-dim: rgba(22,24,33,0.56);
+      --muted: rgba(22,24,33,0.45);
+      color-scheme: light;
+    }
+
+    :root[data-theme="dark"] {
+      --bg-1: #0b0e16;
+      --bg-2: #141a2e;
+      --surface: rgba(255,255,255,0.045);
+      --surface-2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --text-dim: rgba(255,255,255,0.58);
+      --muted: rgba(255,255,255,0.42);
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI',
+                   Roboto, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: radial-gradient(1100px 600px at 50% -10%, var(--bg-2), var(--bg-1));
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin-inline: auto;
+      padding: 0 clamp(16px, 4vw, 28px) 60px;
+    }
+
+    a { color: inherit; }
+
+    :where(button, a, input, textarea, select):focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  `
+}

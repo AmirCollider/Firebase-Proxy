@@ -675,7 +675,8 @@ nothing else breaks — a confusing hour.
 | Add a folder colour | `FOLDER_COLORS` in `Api/MailApi.js` **and** a `.dot.<name>` rule in `Pages/MailPanel.js`. The list is validated server-side because the value reaches a style attribute |
 | Tune the spam filter | `Mail/Spam.js`. Every signal is scored and named on the result, so a refusal can be explained. Test it with the ten-case harness before trusting a change |
 | Change what the contact form accepts | `CONFIG.CONTACT` — limits, allowed types, retention. The page prints these numbers, so they are one constant rather than two |
-| Change what the resume says | `Pages/Resume.js`. `SKILLS` carries the level AND the evidence key; a level with no project behind it does not belong there |
+| Change what the resume says | `Pages/Resume.js`. Every visible string is an `I18N` key in all three languages — `SKILLS`, `CERTIFICATES` and the project rows carry KEYS, never words. `SKILLS` carries the level AND the evidence key; a level with no project behind it does not belong there |
+| Change what a resume project card says about a GAME | nothing here — `handleResume` renders the MERGED registry, so a game's pitch is the one its own landing page shows. `neon-katana` ships no `landing` baseline, so its pitch exists only in the panel |
 | Add a mail panel action | `Api/MailApi.js` switch + the `ACTIONS` list + UI in `Pages/MailPanel.js` |
 | Change what a mail query reads | `Mail/Store.js` — the panel's handlers run no SQL of their own |
 | Change how an incoming message is parsed | `Mail/Inbound.js`. Test it with the six-case harness described in §14 before believing it |
@@ -880,5 +881,15 @@ node --check /tmp/p.js
   a literal `${`.
 - URLs from operator input are validated to `https?://` (or a leading `/` for
   site-local images) before they reach `src` / `href`.
+- **Never hide an element with `left: -9999px`.** It is free in a left-to-right
+  document — a browser makes no room for overflow past the left edge — and it
+  makes an RTL page scroll nearly ten thousand pixels sideways, because that
+  edge is the inline END there. The contact form's honeypot and its hidden file
+  input both did this, and the Persian page would not sit still on a phone. Use
+  the clipped one-pixel box (`position:absolute; width:1px; height:1px;
+  overflow:hidden; clip-path:inset(50%)`) — `.ct-hp` / `.ct-vh` in
+  `Pages/Contact.js`. A skip link is the exception and already correct: it uses
+  the LOGICAL `inset-inline-start`, which lands off the inline start in both
+  directions and never scrolls.
 - Errors degrade: a missing column, an unmigrated database or an unbound
   binding must produce a reduced feature with a clear message, never a 500.
