@@ -529,7 +529,31 @@ export const CONFIG = deepFreeze({
     // one person, so this only ever catches a stuck loop or a
     // stolen session - which is exactly what it is for.
     SEND_RATE_LIMIT: 60,
-    SEND_RATE_WINDOW_MS: 60 * 60 * 1000
+    SEND_RATE_WINDOW_MS: 60 * 60 * 1000,
+
+    // ---------- images ----------
+    //
+    // Images in mail go to R2 and the body links to them; they are
+    // never inlined as data URIs. See the note at the top of
+    // Mail/Images.js for why - briefly, a base64 photo is a
+    // multi-megabyte row in a table read on every list render, and
+    // most mail clients will not display a data URI anyway.
+    //
+    // Both directions are capped, and for different reasons. An
+    // inbound cap bounds what a stranger can make this Worker
+    // store by sending mail to a published address; the compose
+    // cap is only there to catch a mistake, because the person
+    // uploading is the operator.
+    IMAGE_PREFIX: 'mail/',
+    MAX_IMAGE_BYTES: 5 * 1024 * 1024,
+    MAX_IMAGES_INBOUND: 8,
+
+    // How long a mail image stays in R2. Longer than the contact
+    // form's ninety days: a screenshot in a conversation is
+    // useful while the conversation is live, but correspondence
+    // is looked back at, and an inbox whose pictures vanish after
+    // a season is an inbox with holes in it.
+    IMAGE_RETENTION_MS: 365 * 24 * 60 * 60 * 1000
   },
 
   // ==========================================

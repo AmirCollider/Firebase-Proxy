@@ -33,8 +33,10 @@
 
 import { CONFIG } from '../Config.js'
 import { createJsonResponse } from '../Core/Http.js'
+import { textFromHtml } from '../Core/Html.js'
 import { logInfo, logWarning } from '../Core/Logging.js'
 import { sendNow, mailSendable } from '../Commerce/Mailer.js'
+import { putImage, base64ToBytes, IMAGE_TYPES } from '../Mail/Images.js'
 import { isMailAuthenticated } from '../Pages/MailPanel.js'
 import {
   db, mailTableReady, foldersReady, listMessages, getMessage, storeMessage,
@@ -57,7 +59,7 @@ const ACTIONS = [
   'status', 'list', 'get', 'send', 'read', 'readAll',
   'star', 'archive', 'delete', 'system', 'systemGet',
   'folders', 'folderSave', 'folderDrop', 'move',
-  'blocks', 'blockAdd', 'blockDrop'
+  'blocks', 'blockAdd', 'blockDrop', 'image'
 ]
 
 
@@ -119,31 +121,8 @@ function cleanRecipients(input) {
 }
 
 
-// ==========================================
-// textFromHtml
-// A plain-text alternative, when the operator wrote only HTML.
-//
-// Every message goes out multipart with both parts. A mail sent
-// as HTML alone scores worse with every spam filter there is, and
-// reads as an empty message in a client set to plain text.
-// ==========================================
-function textFromHtml(html) {
-  return String(html || '')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<\/(p|div|tr|h[1-6]|li)>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/[ \t]{2,}/g, ' ')
-    .trim()
-}
+// textFromHtml now lives in Core/Html.js: Mail/Inbound.js needs
+// the same function, and two copies of it would drift.
 
 
 // ==========================================
@@ -264,6 +243,74 @@ export async function handleMailApi(url, request, gameId, requestId, GAMES, env)
       }
 
       // ==========================================
+      // ==========================================
+      // image
+      //
+      // One picture out of the compose box and into R2, answering
+      // with the URL the editor puts in an img tag.
+      //
+      // Before this the toolbar's image button could only ask for
+      // a URL somebody had already published somewhere else, which
+      // is not what anyone means by attaching a photo: there was
+      // nothing to preview because there was nothing uploaded.
+      //
+      // The bytes come in as base64 in the JSON body rather than
+      // as multipart, because every other action on this endpoint
+      // is JSON and one shape for the panel is worth more than the
+      // third of a megabyte base64 costs on a five-megabyte cap.
+      // They go to R2 and the body links to them - see the note at
+      // the top of Mail/Images.js for why an inline data URI would
+      // be both an enormous row here and an invisible image in the
+      // recipient's client.
+      // ==========================================
+      case 'image': {
+        const type = String(body.type || '').toLowerCase()
+        if (!IMAGE_TYPES.includes(type)) {
+          return createJsonResponse({
+            error: 'bad_type',
+            message: 'Images only: ' + IMAGE_TYPES.join(', ') + '.',
+            requestId
+          }, 415)
+        }
+
+        if (!(env && env.ASSETS)) {
+          return createJsonResponse({
+            error: 'no_bucket',
+            message: 'The ASSETS bucket is not bound on this Worker.',
+            requestId
+          }, 503)
+        }
+
+        const bytes = base64ToBytes(body.data)
+        if (!bytes.length) {
+          return createJsonResponse({ error: 'empty_image', message: 'Nothing to upload.', requestId }, 400)
+        }
+        if (bytes.length > CONFIG.MAIL.MAX_IMAGE_BYTES) {
+          return createJsonResponse({
+            error: 'too_large',
+            message: 'Images are limited to '
+              + Math.round(CONFIG.MAIL.MAX_IMAGE_BYTES / (1024 * 1024)) + ' MB.',
+            requestId
+          }, 413)
+        }
+
+        // putImage checks the magic bytes as well as the declared
+        // type and returns null when they disagree, so a file
+        // renamed to .png does not become one.
+        const put = await putImage(env, { bytes, type, requestId })
+        if (!put) {
+          return createJsonResponse({
+            error: 'not_an_image',
+            message: 'That file is not the image type it claims to be.',
+            requestId
+          }, 415)
+        }
+
+        // Sizes are logged, contents are not.
+        logInfo('Mail panel image stored', { requestId, size: put.size, type: put.type })
+        return createJsonResponse({ ok: true, url: put.url, size: put.size, requestId })
+      }
+
       case 'send': {
         if (!mailSendable(env)) {
           return createJsonResponse({

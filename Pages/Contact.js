@@ -37,6 +37,7 @@ import { logInfo, logWarning } from '../Core/Logging.js'
 import { themeBootScript } from '../Core/PageChrome.js'
 import { seoHead, breadcrumbLd } from '../Core/Seo.js'
 import { localizedPath } from '../Core/Locale.js'
+import { putImage } from '../Mail/Images.js'
 import {
   siteNavCss, siteHeader, siteBreadcrumb, siteFooter, siteChromeScript, NAV_I18N
 } from '../Core/SiteNav.js'
@@ -337,23 +338,11 @@ const ADDRESS = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/
 // and accepting an executable because it claimed to be a PNG is
 // the whole reason to look.
 // ==========================================
-const MAGIC = [
-  { type: 'image/png', bytes: [0x89, 0x50, 0x4e, 0x47] },
-  { type: 'image/jpeg', bytes: [0xff, 0xd8, 0xff] },
-  { type: 'image/gif', bytes: [0x47, 0x49, 0x46, 0x38] },
-  // WebP is "RIFF....WEBP"; the first four are enough here because
-  // the declared type has to agree as well.
-  { type: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46] }
-]
-
-
-function looksLikeImage(declared, head) {
-  const match = MAGIC.find(entry => entry.type === declared)
-  if (!match) return false
-  return match.bytes.every((byte, index) => head[index] === byte)
-}
-
-
+// The allow-list and the magic-byte check used to live here and
+// are now in Mail/Images.js, imported above. There were two copies
+// of them by the time inbound mail learned to keep a photo, and
+// two copies of a security check is how one of them gets tightened
+// and the other does not.
 async function storeAttachments(env, files, requestId) {
   const bucket = env && env.ASSETS
   const stored = []
@@ -363,26 +352,26 @@ async function storeAttachments(env, files, requestId) {
   for (const file of files.slice(0, CONFIG.CONTACT.MAX_FILES)) {
     try {
       const buffer = new Uint8Array(await file.arrayBuffer())
-      if (!looksLikeImage(file.type, buffer.subarray(0, 8))) continue
 
-      // A name of our own, never the sender's. An uploaded filename
-      // is attacker-controlled text that would otherwise become a
-      // path in a bucket.
-      const extension = file.type.split('/')[1].replace('jpeg', 'jpg')
-      const key = CONFIG.CONTACT.FILE_PREFIX
-        + new Date().toISOString().slice(0, 10) + '/'
-        + crypto.randomUUID() + '.' + extension
+      // The contact form's own size cap, checked before putImage,
+      // because this one is a promise the PAGE makes out loud and
+      // it is stricter than the mail cap behind it.
+      if (buffer.length > CONFIG.CONTACT.MAX_FILE_BYTES) continue
 
-      await bucket.put(key, buffer, {
-        httpMetadata: { contentType: file.type },
-
-        // The expiry a sweep reads. R2 has no TTL of its own, so
-        // this is a note for whatever eventually deletes them
-        // rather than something enforced here.
-        customMetadata: { expiresAt: String(Date.now() + CONFIG.CONTACT.FILE_RETENTION_MS) }
+      // putImage checks the declared type against the first bytes,
+      // writes under a name of ours - never the sender's, which is
+      // attacker-controlled text that would otherwise become a
+      // path in a bucket - and returns null rather than throwing.
+      const put = await putImage(env, {
+        bytes: buffer,
+        type: file.type,
+        prefix: CONFIG.CONTACT.FILE_PREFIX,
+        retentionMs: CONFIG.CONTACT.FILE_RETENTION_MS,
+        requestId
       })
+      if (!put) continue
 
-      stored.push({ key, type: file.type, size: buffer.length })
+      stored.push({ key: put.key, type: put.type, size: put.size })
     } catch (error) {
       logWarning('Contact attachment not stored', { requestId, error: error.message })
     }

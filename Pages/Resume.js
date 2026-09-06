@@ -57,11 +57,16 @@ const PAGE_PATH = '/resume'
 // a claim a reader can verify costs nothing to make and a claim
 // they cannot costs the rest of the page.
 // ==========================================
+// There was a fifth here once - years programming - and it came
+// off deliberately. The owner says publicly that he started at
+// eight and nowhere says how old he is; a "10+ years" beside that
+// subtracts to an age he chose not to publish. A resume should
+// not do arithmetic on its author.
 const STATS = [
-  { key: 'sYears', value: '10+' },
   { key: 'sShipped', value: '4' },
   { key: 'sLangs', value: '3' },
-  { key: 'sStack', value: '100%' }
+  { key: 'sStack', value: '100%' },
+  { key: 'sDeps', value: '0' }
 ]
 
 
@@ -164,11 +169,23 @@ const I18N = {
     tagline: 'بازی می‌سازم، ابزارِ ساختش را می‌نویسم، و سرویسی که پشت هر دو کار می‌کند هم مال خودم است.',
     ctaContact: 'برای همکاری بنویس',
     ctaWork: 'کارها را ببین',
+    ctaPdf: 'دریافت PDF',
+    pdfHint: 'صفحه در پنجره‌ی چاپ باز می‌شود؛ مقصد را روی «ذخیره به‌صورت PDF» بگذارید. همین زبانی که می‌خوانید ذخیره می‌شود.',
 
-    sYears: 'سال برنامه‌نویسی',
+    // The section strip. Short labels - it is a jump list, not a
+    // second set of headings.
+    jSummary: 'در یک نگاه',
+    jWork: 'کارها',
+    jSkills: 'مهارت‌ها',
+    jFocus: 'مسیر',
+    jCerts: 'مدارک',
+    jContact: 'تماس',
+    jumpLabel: 'پیمایش بخش‌های رزومه',
+
     sShipped: 'محصول منتشرشده',
-    sLangs: 'زبان روی هر محصول',
-    sStack: 'کد نوشته‌ی خودم',
+    sLangs: 'زبان، روی هر محصول',
+    sStack: 'کدِ نوشته‌ی خودم',
+    sDeps: 'وابستگی بیرونی، بدون مرحله‌ی بیلد',
 
     summaryHead: 'در یک نگاه',
     summary: [
@@ -237,10 +254,11 @@ const I18N = {
     evSeo: 'sitemap و داده‌ی ساخت‌یافته',
     evPython: 'اسکریپت‌های جانبی',
 
-    focusHead: 'دنبال چه هستم',
+    focusHead: 'مسیری که جلو می‌روم',
     focus: [
-      'تا حالا تنها کار کرده‌ام. پروژه را خودم تعریف کرده‌ام، ساخته‌ام، منتشر کرده‌ام و هنوز خودم نگهش می‌دارم. سابقه‌ی کار در استودیو ندارم و ترجیح می‌دهم همین اول صاف بگویمش تا اینکه لای جمله‌بندی قایمش کنم.',
-      'چیزی که دنبالش هستم تیم است. جایی که کدم ریویو شود، یکی سرش با من بحث کند، و اندازه‌ی کار از چیزی که یک نفر می‌تواند تنها نگه دارد بزرگ‌تر باشد. نقشی که بهش فکر می‌کنم برنامه‌نویس گیم‌پلی یا برنامه‌نویس ابزار است. دورکاری یا حضوری، فرقی نمی‌کند.'
+      'تنها کار می‌کنم و این تا اینجا انتخاب بوده، نه ناچاری. کار را خودم تعریف می‌کنم، می‌سازم، منتشر می‌کنم و بعد خودم نگهش می‌دارم — ایمیل پشتیبانی هم به خودم می‌رسد. عادت دارم به‌جای بحث بر سر بهترین راه، چیزی را که کار می‌کند منتشر کنم و بعد بهترش کنم.',
+      'این‌ها را محصول می‌بینم، نه نمونه‌کار. Unity DocSnap همین حالا فروش دارد، Chrono Blades خرید درون‌برنامه‌ای دارد و Neon Katana هنوز ندارد اما زیرساختش آماده است. هدفم روشن است: درآمدم از بازی‌ها، ابزارها و سایت‌های خودم باشد و هر کدام روی پای خودش بایستد.',
+      'در کنار آن دنبال کار بین‌المللی هستم و همکاری با استودیوهای بزرگ بازی‌سازی. نه به این دلیل که این‌ها را کافی نمی‌دانم، بلکه چون می‌دانم مقیاسی هست که تنها به آن نمی‌رسم: تیمی که کدم را ریویو کند، پروژه‌ای بزرگ‌تر از یک نفر، و روشی از کار کردن که فقط با انجام دادنش یاد گرفته می‌شود. آن تجربه را ندارم و همین اول می‌گویمش.'
     ],
 
     // The skill rows. Written in Persian, not transliterated from
@@ -312,11 +330,21 @@ const I18N = {
     tagline: 'I make games, I write the tools that make them faster to build, and the service behind both is mine too.',
     ctaContact: 'Start a conversation',
     ctaWork: 'See the work',
+    ctaPdf: 'Download PDF',
+    pdfHint: 'This opens the print dialog — choose "Save as PDF" as the destination. It saves the language you are reading.',
 
-    sYears: 'years programming',
+    jSummary: 'Summary',
+    jWork: 'Work',
+    jSkills: 'Skills',
+    jFocus: 'Direction',
+    jCerts: 'Certificates',
+    jContact: 'Contact',
+    jumpLabel: 'Resume sections',
+
     sShipped: 'products shipped',
     sLangs: 'languages, every product',
     sStack: 'of it written by me',
+    sDeps: 'external dependencies, no build step',
 
     summaryHead: 'The short version',
     summary: [
@@ -377,10 +405,11 @@ const I18N = {
     evSeo: 'sitemap and structured data',
     evPython: 'supporting scripts',
 
-    focusHead: 'What I am looking for',
+    focusHead: 'Where I am going',
     focus: [
-      'I have worked alone so far. I scoped these projects, built them, shipped them, and I still maintain them. I have not worked at a studio, and I would rather say that in the first line than bury it in phrasing.',
-      'What I want is a team. Somewhere my code gets reviewed, somebody argues with me about it, and the work is bigger than one person can hold. Gameplay programmer or tools programmer are the roles I have in mind. Remote or on-site, either is fine.'
+      'I work alone, and so far that has been a choice rather than a constraint. I scope the work, build it, ship it, and then keep it running — the support mail reaches me. I would rather put something that works in front of people and improve it than argue about the best way to start.',
+      'I treat these as products, not portfolio pieces. Unity DocSnap sells today, Chrono Blades carries in-app purchases, and Neon Katana does not yet — the plumbing is there for when it does. The goal is plain: I want my games, my tools and my sites to be my income, each of them standing on its own.',
+      'Alongside that I am looking for international work, and for the chance to work with large game studios. Not because I think what I have built is small, but because I know there is a scale I cannot reach alone: a team that reviews my code, a project bigger than one person, and a way of working that is only learned by doing it. I have not had that yet, and I would rather say so in the first line than bury it in phrasing.'
     ],
 
     skCsharp: 'C# gameplay systems',
@@ -445,20 +474,30 @@ const I18N = {
 
     role: 'ゲームプログラマー · Unity / C#',
     h1: 'これまで作ったもの',
-    tagline: 'ゲームを作り、それを速く作るための道具を書き、両方を支えるサービスも自分で運用しています。',
+    tagline: 'ゲームを作り、それを速く作るための道具を書き、両方を支えるサービスの運用も自分で行っております。',
     ctaContact: 'ご相談はこちら',
     ctaWork: '制作物を見る',
+    ctaPdf: 'PDF で保存',
+    pdfHint: '印刷ダイアログが開きます。出力先を「PDF に保存」にしてください。今ご覧の言語のまま保存されます。',
 
-    sYears: '年のプログラミング',
+    jSummary: '概要',
+    jWork: '制作物',
+    jSkills: 'スキル',
+    jFocus: 'これから',
+    jCerts: '資格',
+    jContact: 'ご連絡',
+    jumpLabel: '経歴のセクション',
+
     sShipped: '本の公開済み製品',
     sLangs: '言語対応、全製品',
     sStack: '自分で書いたコード',
+    sDeps: '外部依存、ビルド工程なし',
 
     summaryHead: '概要',
     summary: [
-      '仕事は 3 つの層に分かれていて、そのすべてを自分で書いています。ゲーム本体、それを速く作るための道具、そして両方が乗るサービスです。どれもポートフォリオ用の習作ではなく、公開され、使われていて、うち 1 つは販売しています。',
+      '仕事は 3 つの層に分かれていて、そのすべてを自分で書いています。ゲーム本体、それを速く作るための道具、そして両方が乗るサービスです。いずれも練習のための習作ではなく、実際に公開して使っていただいているもので、そのうち 1 つは販売しております。',
       'Unity の中での仕事はシステム作りです。誰も想定しなかった操作をプレイヤーがしたときにも壊れないもの。クラウドセーブ、ランキング、アプリ内ストアとその経済設計、終わりのないステージ生成、そして自分の環境と同じように他人の端末でも動く Android ビルドです。',
-      'Unity の外ではエディタ拡張を書き、売ったものを自分で支えています。キーの発行、端末の有効化、決済、配信。深夜に誰かのライセンスが通らなければ、直せるのは自分だけです。この一文のほうが、どんな形容詞よりも働き方を説明できると思います。'
+      'Unity の外ではエディタ拡張を書き、売ったものを自分で支えています。キーの発行、端末の有効化、決済、配信。深夜に誰かのライセンスが通らなければ、直せるのは自分だけです。自分の仕事の仕方は、どんな言葉を並べるよりも、この一点に表れているように思います。'
     ],
 
     kgame: 'ゲーム',
@@ -483,10 +522,10 @@ const I18N = {
     bPanels: '運用パネル',
     bMailbox: 'メールボックス',
     workHead: '制作物',
-    workLede: '4 つとも公開済みで、このサイトから開けます。',
+    workLede: '4 つとも公開しており、このサイトからご覧いただけます。',
 
     skillsHead: 'スキル',
-    skillsLede: 'レベルは触れてきた期間ではなく、実際に必要とされた作業から決めています。右端の列は使用箇所です。裏付けとなる制作物がないものは、そもそも表に入れていません。',
+    skillsLede: 'レベルは触れてきた期間ではなく、実際に必要とされた作業をもとに、自分なりに判断したものです。右端の列は使用箇所です。裏付けとなる制作物がないものは、表に入れておりません。',
     gGameplay: 'ゲームプレイと Unity',
     gTools: 'ツールとエディタ',
     gBackend: 'バックエンド',
@@ -513,10 +552,11 @@ const I18N = {
     evSeo: 'sitemap と構造化データ',
     evPython: '補助スクリプト',
 
-    focusHead: '希望',
+    focusHead: 'これから',
     focus: [
-      'これまでは一人で進めてきました。企画も実装も公開も自分で行い、今も自分で保守しています。スタジオでの勤務経験はありません。言い回しでぼかすより、最初の一行で書いておきます。',
-      '求めているのはチームです。コードがレビューされ、誰かが議論してくれて、仕事の規模が一人で抱えられる範囲を超えている場所。想定している職種はゲームプレイプログラマーかツールプログラマーです。リモートでも出社でも構いません。'
+      'これまでは一人で進めてきました。企画から実装、公開、そして公開後の保守まで自分で担当しており、サポートのメールも自分に届きます。最初から完璧な形を議論するより、動くものを世に出してから直していく進め方をしてきました。',
+      '作ったものは作品というより製品だと考えています。Unity DocSnap は現在販売しており、Chrono Blades にはアプリ内課金があります。Neon Katana にはまだありませんが、仕組みだけは用意してあります。自分のゲーム・ツール・サイトが、それぞれ自分の力で収益を生む状態にしていきたいと考えています。',
+      'あわせて、海外での仕事や、大きなゲームスタジオの方々とご一緒する機会を探しています。今あるものを小さいと思っているからではなく、一人では届かない規模があると分かっているからです。コードをレビューしていただける環境、一人では抱えきれない大きさの案件、そして実際にやってみなければ身につかない働き方。その経験はまだありませんので、隠さず最初に書いておきます。至らない点も多いと思いますが、学ぶ姿勢だけは持ち続けたいと考えています。'
     ],
 
     skCsharp: 'C# によるゲームプレイ実装',
@@ -548,7 +588,7 @@ const I18N = {
     iGoogle: 'Google Digital Garage',
 
     certHead: '資格',
-    certLede: '証書そのものは掲載していません。いずれにも本名と個人情報が記載されているためです。ご要望があれば直接お送りします。',
+    certLede: '証書そのものは掲載しておりません。いずれにも本名と個人情報が記載されているためです。ご要望をいただければ、直接お送りいたします。',
     cTopLearn: 'Unity ゲーム開発 総合講座（プロジェクト形式）',
     cInstitute: 'Unity ゲーム開発 専門コース',
     cSeGaP: '認知シリアスゲーム スクール',
@@ -563,7 +603,7 @@ const I18N = {
     crWeb: 'Web デザイン 1 学期',
 
     contactHead: 'ご連絡',
-    contactLede: '短くて構いません。必ず返信します。',
+    contactLede: '短いご連絡でも構いません。いただいたお便りには、できるだけ早くお返事いたします。',
     lContact: 'お問い合わせフォーム',
     lGithub: 'GitHub',
     lInstagram: 'Instagram',
@@ -711,6 +751,24 @@ function renderPage(lang, theme, games) {
         </a>`
   }).join('')
 
+  // The section strip. Plain anchors, so it works with JavaScript
+  // off and so a middle-click opens the section in a new tab; the
+  // script only adds the highlight that follows the reader. It
+  // scrolls inside its own box rather than widening the page - six
+  // labels in Persian do not fit a phone, and a strip that makes
+  // the whole document pan sideways is worse than no strip.
+  const JUMPS = [
+    ['summary', 'jSummary'], ['work', 'jWork'], ['skills', 'jSkills'],
+    ['focus', 'jFocus'], ['certificates', 'jCerts'], ['contact', 'jContact']
+  ]
+  const jump = `
+      <nav class="rs-jump" id="rsJump" aria-label="${escapeHtml(t.jumpLabel)}">
+        <div class="rs-jump-row">${
+          JUMPS.map(([id, key]) =>
+            `<a href="#${id}" data-jump="${id}">${escapeHtml(t[key])}</a>`).join('')
+        }</div>
+      </nav>`
+
   const groupLabel = { gameplay: t.gGameplay, tools: t.gTools, backend: t.gBackend, web: t.gWeb }
 
   const skills = SKILLS.map(group => `
@@ -800,40 +858,52 @@ function renderPage(lang, theme, games) {
     ${siteBreadcrumb({ lang, trail })}
     <main id="main">
 
-      <header class="rs-hero">
+      <div class="rs-print-head" aria-hidden="true">
+        <span>${escapeHtml(CONFIG.BRAND && CONFIG.BRAND.NAME ? CONFIG.BRAND.NAME : 'AmirCollider')} — ${escapeHtml(t.crumb)}</span>
+        <span>${escapeHtml(CONFIG.SITE_URL.replace(/^https?:\/\//, '') + localizedPath(PAGE_PATH, lang))}</span>
+      </div>
+
+      <header class="rs-hero rs-rise">
+        <span class="rs-mark" aria-hidden="true">
+          <img src="${escapeHtml(CONFIG.AMIR_LOGO)}" alt="" width="56" height="56" loading="eager" decoding="async">
+        </span>
         <p class="rs-role">${escapeHtml(t.role)}</p>
         <h1>${escapeHtml(t.h1)}</h1>
         <p class="rs-tagline">${escapeHtml(t.tagline)}</p>
         <div class="rs-cta">
           <a class="rs-btn is-primary" href="${escapeHtml(localizedPath('/contact', lang))}">${escapeHtml(t.ctaContact)}</a>
           <a class="rs-btn" href="#work">${escapeHtml(t.ctaWork)}</a>
+          <button type="button" class="rs-btn rs-pdf" id="rsPdf" hidden>${escapeHtml(t.ctaPdf)}</button>
         </div>
+        <p class="rs-pdf-hint" id="rsPdfHint" hidden>${escapeHtml(t.pdfHint)}</p>
         <div class="rs-stats">${stats}</div>
       </header>
 
-      <section class="rs-sec">
+      ${jump}
+
+      <section class="rs-sec rs-reveal" id="summary">
         <h2>${escapeHtml(t.summaryHead)}</h2>
         <div class="rs-prose">${summary}</div>
       </section>
 
-      <section class="rs-sec" id="work">
+      <section class="rs-sec rs-reveal" id="work">
         <h2>${escapeHtml(t.workHead)}</h2>
         <p class="rs-lede">${escapeHtml(t.workLede)}</p>
         <div class="rs-cards">${work}</div>
       </section>
 
-      <section class="rs-sec">
+      <section class="rs-sec rs-reveal" id="skills">
         <h2>${escapeHtml(t.skillsHead)}</h2>
         <p class="rs-lede">${escapeHtml(t.skillsLede)}</p>
         <div class="rs-skills">${skills}</div>
       </section>
 
-      <section class="rs-sec">
+      <section class="rs-sec rs-reveal" id="focus">
         <h2>${escapeHtml(t.focusHead)}</h2>
         <div class="rs-prose">${focus}</div>
       </section>
 
-      <section class="rs-sec">
+      <section class="rs-sec rs-reveal" id="certificates">
         <h2>${escapeHtml(t.certHead)}</h2>
         <p class="rs-lede">${escapeHtml(t.certLede)}</p>
         <ul class="rs-certs">${certs}</ul>
@@ -842,10 +912,28 @@ function renderPage(lang, theme, games) {
         <ul class="rs-courses">${courses}</ul>
       </section>
 
-      <section class="rs-sec rs-end">
+      <section class="rs-sec rs-end rs-reveal" id="contact">
         <h2>${escapeHtml(t.contactHead)}</h2>
         <p class="rs-lede">${escapeHtml(t.contactLede)}</p>
         <div class="rs-links">${links}</div>
+
+        <!--
+          The same details, as text, for the sheet of paper.
+
+          Every control in .rs-links is a thing to press, and the
+          print stylesheet hides all of them - which left the
+          exported PDF with a Contact heading, an invitation to
+          write, and no address to write to. A printed resume that
+          cannot be replied to is the one mistake this page cannot
+          afford, so the addresses are spelled out here and shown
+          only when the page is being printed.
+        -->
+        <ul class="rs-print-contact" aria-hidden="true">
+          <li>${escapeHtml(CONFIG.SUPPORT_EMAIL)}</li>
+          <li>${escapeHtml(CONFIG.SITE_URL.replace(/^https?:\/\//, '') + localizedPath('/contact', lang))}</li>
+          <li>${escapeHtml(String(CONFIG.SOCIAL.github || '').replace(/^https?:\/\//, ''))}</li>
+        </ul>
+
         <p class="rs-about">${escapeHtml(t.aboutNote)}
           <a href="${escapeHtml(localizedPath('/about', lang))}">${escapeHtml(t.aboutCta)}</a>${escapeHtml(t.aboutNote2)}</p>
       </section>
@@ -855,9 +943,205 @@ function renderPage(lang, theme, games) {
   </div>
   ${siteBackToTop({ lang })}
   ${siteChromeScript()}
+  ${RESUME_JS}
 </body>
 </html>`
 }
+
+
+// ==========================================
+// The page's own script.
+//
+// Everything here is an addition to a page that is already
+// finished, and the ordering is the whole trick: the .js-motion
+// class that arms every animated rule is set BY THIS SCRIPT. With
+// JavaScript off - and for a crawler, and for the print renderer -
+// the stylesheet's animated rules never apply at all, so the
+// reader gets the finished page immediately rather than a document
+// of invisible sections waiting for an observer that will never
+// run. Write it the other way round and the page is blank for
+// everybody the enhancement was not for.
+//
+// String.raw, and no backtick and no dollar-brace anywhere inside:
+// this is a template literal inside a template literal, and
+// CLAUDE.md section 15 records what a stray one does to the file.
+// ==========================================
+const RESUME_JS = '<' + 'script>' + String.raw`
+(function () {
+  var doc = document;
+  var reduce = false;
+  try {
+    reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) {}
+
+  if (!reduce) doc.documentElement.classList.add('js-motion');
+
+  var sections = [].slice.call(doc.querySelectorAll('.rs-reveal'));
+  var jumpLinks = [].slice.call(doc.querySelectorAll('.rs-jump a'));
+  var targets = jumpLinks.map(function (a) {
+    return { link: a, el: doc.getElementById(a.getAttribute('data-jump')) };
+  }).filter(function (pair) { return pair.el; });
+
+  // One pass does both jobs, and it is driven by scroll position
+  // rather than by an IntersectionObserver. That is a deliberate
+  // choice made twice over:
+  //
+  //   Revealing. An observer only tells you about a section it
+  //   watched cross the edge. Land on /resume#skills, reload
+  //   half-way down, or press End, and every section you went PAST
+  //   never crossed anything - so with an observer they stay at
+  //   opacity 0 and the reader scrolls up into blank space. Asking
+  //   "is this section at or above the line" answers correctly no
+  //   matter how the reader got there.
+  //
+  //   Highlighting. "Which section am I in" is a question about
+  //   the whole list at one moment; an observer answers it one
+  //   section at a time, which flickers where two short sections
+  //   meet.
+  //
+  // Both are cheap: a handful of getBoundingClientRect calls,
+  // throttled to one animation frame.
+  var ticking = false;
+
+  function pass() {
+    ticking = false;
+    var h = window.innerHeight;
+
+    // Reveal anything whose top has reached the bottom 8% of the
+    // viewport, and everything above it.
+    var revealLine = h * 0.92;
+    for (var i = 0; i < sections.length; i++) {
+      var el = sections[i];
+      if (el.classList.contains('is-in')) continue;
+      if (el.getBoundingClientRect().top < revealLine) el.classList.add('is-in');
+    }
+
+    if (!targets.length) return;
+
+    // The strip. The last section whose top is above a third of
+    // the way down the viewport is the one being read.
+    var line = h * 0.32;
+    var current = null;
+    for (var j = 0; j < targets.length; j++) {
+      if (targets[j].el.getBoundingClientRect().top <= line) current = targets[j];
+    }
+    // Above the first section, the first one is the answer; at the
+    // very bottom, the last one is, whatever the arithmetic says.
+    if (!current) current = targets[0];
+    if (h + window.scrollY >= doc.body.scrollHeight - 4) current = targets[targets.length - 1];
+
+    for (var k = 0; k < targets.length; k++) {
+      if (targets[k] === current) targets[k].link.classList.add('is-here');
+      else targets[k].link.classList.remove('is-here');
+    }
+  }
+
+  function schedule() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(pass);
+  }
+
+  if (reduce) {
+    sections.forEach(function (el) { el.classList.add('is-in'); });
+  }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  // Anchor navigation moves the page without a scroll event in
+  // some browsers, so the hash change is watched as well.
+  window.addEventListener('hashchange', schedule);
+  pass();
+
+  // ---------- the four numbers ----------
+  //
+  // The final text is what the server rendered; this only replays
+  // the climb up to it and then puts the original string back
+  // verbatim. Anything it cannot read as a number it leaves alone,
+  // which is how a value like 10+ or a Persian numeral survives a
+  // later edit to STATS without this code knowing about it.
+  function countUp(el) {
+    var finalText = el.textContent;
+    var digits = finalText.replace(/[^0-9]/g, '');
+    if (!digits) return;
+    var target = parseInt(digits, 10);
+    if (!isFinite(target) || target <= 0) return;
+
+    var at = finalText.indexOf(digits);
+    var prefix = finalText.slice(0, at);
+    var suffix = finalText.slice(at + digits.length);
+    var started = 0;
+
+    function frame(now) {
+      if (!started) started = now;
+      var p = Math.min(1, (now - started) / 900);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = prefix + Math.round(target * eased) + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (!reduce && typeof requestAnimationFrame === 'function') {
+    var nums = [].slice.call(doc.querySelectorAll('.rs-stat b'));
+    var runNums = function () { nums.forEach(countUp); };
+    var statBox = doc.querySelector('.rs-stats');
+    if ('IntersectionObserver' in window && statBox) {
+      var io2 = new IntersectionObserver(function (entries) {
+        if (!entries[0] || !entries[0].isIntersecting) return;
+        io2.disconnect();
+        runNums();
+      }, { threshold: 0.3 });
+      io2.observe(statBox);
+    } else {
+      runNums();
+    }
+  }
+
+  // ---------- the identity mark ----------
+  //
+  // If the logo cannot be fetched, take the whole mark out rather
+  // than leave a broken-image glyph at the top of the page. This
+  // page is printed and sent to people: an empty bordered square
+  // is a design choice, a broken image is a mistake.
+  var mark = doc.querySelector('.rs-mark img');
+  if (mark) {
+    mark.addEventListener('error', function () {
+      var box = mark.closest ? mark.closest('.rs-mark') : mark.parentNode;
+      if (box) box.style.display = 'none';
+    });
+    // A load that already failed before this ran fires no event.
+    if (mark.complete && mark.naturalWidth === 0) {
+      var box0 = mark.closest ? mark.closest('.rs-mark') : mark.parentNode;
+      if (box0) box0.style.display = 'none';
+    }
+  }
+
+  // ---------- PDF ----------
+  //
+  // The button ships hidden and is revealed here, because what it
+  // does needs a script and a control that does nothing is worse
+  // than no control at all. What it opens is the browser's own
+  // print dialog, whose Save-as-PDF destination writes a real,
+  // selectable, searchable PDF of this page in the language being
+  // read. The export itself is the print block in the stylesheet;
+  // this is only the door to it.
+  var pdf = doc.getElementById('rsPdf');
+  var hint = doc.getElementById('rsPdfHint');
+  if (pdf && typeof window.print === 'function') {
+    pdf.hidden = false;
+    if (hint) hint.hidden = false;
+    pdf.addEventListener('click', function () {
+      // Reveal everything before the dialog reads the layout. A
+      // section still waiting for its observer would otherwise
+      // print as a blank block: the print stylesheet overrides the
+      // CSS, but the class has to be on the element first.
+      sections.forEach(function (el) { el.classList.add('is-in'); });
+      window.print();
+    });
+  }
+})();
+` + '<' + '/script>';
 
 
 // ==========================================
@@ -904,8 +1188,79 @@ function css() {
   return `
     #main { padding-block-start: 8px; }
 
+    /* ---------- motion ----------
+       Every animated rule here is an ENHANCEMENT of a page that is
+       already complete and already laid out. Nothing starts at
+       opacity 0 unless the script has said it is going to move it:
+       the .js-motion class is set by the script itself, so a
+       reader with JavaScript off, a crawler, and the print
+       renderer all get the finished page rather than an empty one.
+       That ordering is the whole trick and it is easy to lose. */
+    @keyframes rs-rise-in {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .js-motion .rs-rise > * { animation: rs-rise-in 0.62s cubic-bezier(0.22, 0.68, 0.24, 1) backwards; }
+    .js-motion .rs-rise > *:nth-child(1) { animation-delay: 0.02s; }
+    .js-motion .rs-rise > *:nth-child(2) { animation-delay: 0.09s; }
+    .js-motion .rs-rise > *:nth-child(3) { animation-delay: 0.16s; }
+    .js-motion .rs-rise > *:nth-child(4) { animation-delay: 0.23s; }
+    .js-motion .rs-rise > *:nth-child(5) { animation-delay: 0.30s; }
+    .js-motion .rs-rise > *:nth-child(6) { animation-delay: 0.37s; }
+    .js-motion .rs-rise > *:nth-child(7) { animation-delay: 0.44s; }
+
+    .js-motion .rs-reveal {
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 0.62s ease, transform 0.62s cubic-bezier(0.22, 0.68, 0.24, 1);
+    }
+    .js-motion .rs-reveal.is-in { opacity: 1; transform: none; }
+
+    /* A reader who has asked their system for less motion gets the
+       page with none of it, not a slower version of it. */
+    @media (prefers-reduced-motion: reduce) {
+      .js-motion .rs-rise > *,
+      .js-motion .rs-reveal { animation: none !important; transition: none !important;
+        opacity: 1 !important; transform: none !important; }
+    }
+
     /* ---------- hero ---------- */
-    .rs-hero { text-align: center; padding-block: clamp(24px, 6vw, 54px) clamp(20px, 4vw, 34px); }
+    .rs-hero {
+      text-align: center; position: relative;
+      padding-block: clamp(24px, 6vw, 54px) clamp(20px, 4vw, 34px);
+    }
+
+    /* The glow behind the title. Decorative, sits under everything,
+       and is drawn with the brand colour rather than a fixed purple
+       so a game-accent theme does not fight it. */
+    .rs-hero::before {
+      content: ''; position: absolute; z-index: -1;
+      inset-block-start: -70px; left: 50%; transform: translateX(-50%);
+      width: min(680px, 100%); height: 340px;
+      background: radial-gradient(closest-side,
+        rgba(var(--brand-rgb), 0.20), rgba(var(--brand-rgb), 0.06) 62%, transparent 100%);
+      pointer-events: none;
+    }
+    /* Two things above are deliberate and both were bugs first.
+       LEFT, not inset-inline-start: the offset and the translate
+       that centres it have to agree about which way is which, and
+       transform is always physical - pairing a logical offset with
+       a physical translate put the glow 340 pixels off the edge of
+       the Persian page and made the whole document pan sideways.
+       And 100%, not 130%: a decoration wider than the box it
+       decorates is a horizontal scrollbar waiting for a narrow
+       phone. */
+
+    /* The identity mark. The site header carries the same logo, but
+       a resume that is printed, exported or read on its own has to
+       introduce itself at the top of the page rather than rely on
+       chrome that will not be there. */
+    .rs-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 74px; height: 74px; border-radius: 22px; margin-block-end: 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      box-shadow: 0 14px 34px rgba(var(--brand-rgb), 0.20);
+    }
+    .rs-mark img { width: 56px; height: 56px; object-fit: contain; border-radius: 14px; }
     .rs-role {
       font-size: 0.82em; font-weight: 800; letter-spacing: 0.09em;
       text-transform: uppercase; color: var(--brand);
@@ -944,7 +1299,15 @@ function css() {
     .rs-stat {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 18px 12px; min-width: 0;
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
+    .rs-stat:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+    }
+    /* The counting number must not resize the card as it climbs
+       from 0 to 100. Tabular figures keep every digit one width. */
+    .rs-stat b { font-variant-numeric: tabular-nums; }
     .rs-stat b {
       display: block; font-size: clamp(1.5rem, 4vw, 1.9rem); font-weight: 800;
       letter-spacing: -0.02em; color: var(--brand); line-height: 1.2;
@@ -954,8 +1317,44 @@ function css() {
       margin-block-start: 5px; line-height: 1.5;
     }
 
+    .rs-pdf { border-style: dashed; }
+    .rs-pdf-hint {
+      max-width: 34em; margin: 12px auto 0;
+      font-size: 0.78em; color: var(--muted); line-height: 1.7;
+    }
+
+    /* ---------- the section strip ----------
+       Sticky under the site header, and it scrolls INSIDE itself.
+       Six Persian labels are wider than a phone; a strip that made
+       the document pan sideways would undo the whole point of the
+       page being readable on a phone. */
+    .rs-jump {
+      position: sticky; top: 8px; z-index: 20;
+      margin-block: 4px clamp(28px, 6vw, 44px);
+    }
+    .rs-jump-row {
+      display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+      padding: 6px; border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      scroll-snap-type: x proximity;
+    }
+    .rs-jump-row::-webkit-scrollbar { display: none; }
+    .rs-jump a {
+      flex: none; scroll-snap-align: center;
+      padding: 9px 16px; border-radius: 999px; white-space: nowrap;
+      font-size: 0.82em; font-weight: 700; text-decoration: none;
+      color: var(--text-dim); transition: background 0.18s ease, color 0.18s ease;
+    }
+    .rs-jump a:hover { color: var(--text); background: var(--surface-2); }
+    .rs-jump a.is-here {
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 55%, #a78bfa));
+    }
+
     /* ---------- sections ---------- */
-    .rs-sec { margin-block: clamp(38px, 8vw, 62px); }
+    .rs-sec { margin-block: clamp(38px, 8vw, 62px); scroll-margin-top: 82px; }
     .rs-sec > h2 {
       font-size: clamp(1.25rem, 3.4vw, 1.55rem); font-weight: 800;
       letter-spacing: -0.01em; text-align: center;
@@ -1034,6 +1433,21 @@ function css() {
       background: var(--border); display: block;
     }
     .rs-pips i.on { background: var(--brand); }
+
+    /* The filled pips grow in from the inline start when their card
+       arrives, one after another, so the eye reads the row as a
+       level rather than as four decorations. transform-origin is
+       LOGICAL: on the Persian page the row fills from the right. */
+    .js-motion .rs-reveal .rs-pips i.on {
+      transform: scaleX(0); transform-origin: left center;
+      transition: transform 0.42s cubic-bezier(0.22, 0.68, 0.24, 1);
+    }
+    [dir="rtl"] .js-motion .rs-reveal .rs-pips i.on { transform-origin: right center; }
+    .js-motion .rs-reveal.is-in .rs-pips i.on { transform: scaleX(1); }
+    .js-motion .rs-reveal.is-in .rs-pips i.on:nth-child(1) { transition-delay: 0.06s; }
+    .js-motion .rs-reveal.is-in .rs-pips i.on:nth-child(2) { transition-delay: 0.13s; }
+    .js-motion .rs-reveal.is-in .rs-pips i.on:nth-child(3) { transition-delay: 0.20s; }
+    .js-motion .rs-reveal.is-in .rs-pips i.on:nth-child(4) { transition-delay: 0.27s; }
     .rs-sk-ev { font-size: 0.72em; color: var(--muted); white-space: nowrap; }
 
     /* ---------- certificates ---------- */
@@ -1090,6 +1504,140 @@ function css() {
       .rs-certs li { grid-template-columns: 1fr; }
       .rs-cert-tag { grid-row: auto; grid-column: 1; justify-self: start; margin-block-start: 4px; }
       .rs-skills-card li { align-items: flex-start; }
+    }
+
+    /* The printed masthead. Hidden on screen - the site header
+       already says whose page this is - and the only thing on
+       paper that does. */
+    .rs-print-head, .rs-print-contact { display: none; }
+
+    /* ==========================================
+       Print, which is also the PDF.
+
+       There is no PDF library here and there is not going to be
+       one: rule 7 of CLAUDE.md forbids a dependency and a Worker
+       has no font stack to lay Persian or Japanese text out with
+       anyway. What the browser already has is a typesetter that
+       knows all three scripts, has the page's own fonts loaded,
+       and writes a real, selectable, searchable PDF. So the
+       export IS this stylesheet, and the button only opens the
+       dialog.
+
+       Which means every rule below is the document a company
+       receives. Three things it has to get right:
+
+         1. COLOUR. The page's tokens are dark by default and a
+            dark resume prints as a black rectangle or, with
+            backgrounds off, as grey text on white. Every token is
+            redefined here for paper, so the sheet is black on
+            white whatever theme the reader had on screen.
+         2. WHAT IS NOT ON PAPER. Navigation, the language switch,
+            the footer, the jump strip, the buttons and the
+            back-to-top control are all things to press. A sheet
+            of paper has nothing to press.
+         3. WHERE THE PAGES BREAK. A skills card split across two
+            sheets, or a heading alone at the foot of one, is what
+            makes an exported resume look automatic.
+       ========================================== */
+    @page {
+      size: A4;
+      margin: 14mm 13mm;
+    }
+
+    @media print {
+      /* Paper tokens. Overriding the variables rather than the
+         rules means every component below keeps its own layout
+         and only changes colour - one place to look when the
+         printed sheet is wrong. */
+      :root, :root[data-theme="dark"], :root[data-theme="light"] {
+        --bg-1: #ffffff; --bg-2: #ffffff;
+        --surface: #ffffff; --surface-2: #ffffff;
+        --border: #c9cedb;
+        --text: #111318; --text-dim: #333844; --muted: #565d6e;
+        --brand: #4a3fd0;
+        color-scheme: light;
+      }
+      body {
+        background: #fff !important;
+        color: #111318;
+        font-size: 10.2pt; line-height: 1.62;
+      }
+      .wrap { max-width: none; padding: 0; }
+      #main { padding-block-start: 0; }
+
+      /* Everything that exists to be pressed. */
+      .ac-nav, .ac-foot, .ac-top, .ac-skip, .ac-crumbs,
+      .rs-jump, .rs-cta, .rs-pdf-hint, .rs-links { display: none !important; }
+
+      /* No animation on paper: a rule that starts at opacity 0
+         prints a blank sheet if the observer has not run. */
+      .js-motion .rs-rise > *, .js-motion .rs-reveal,
+      .js-motion .rs-reveal .rs-pips i.on {
+        animation: none !important; transition: none !important;
+        opacity: 1 !important; transform: none !important;
+      }
+
+      .rs-print-head {
+        display: flex; justify-content: space-between; gap: 16px;
+        font-size: 8.4pt; color: #565d6e; padding-block-end: 7px;
+        border-block-end: 1px solid #c9cedb; margin-block-end: 16px;
+      }
+
+      .rs-hero { padding-block: 0 14px; }
+      .rs-hero::before { display: none; }
+      .rs-mark {
+        width: 46px; height: 46px; border-radius: 12px;
+        margin-block-end: 10px; box-shadow: none;
+      }
+      .rs-mark img { width: 34px; height: 34px; }
+      .rs-hero h1 { font-size: 21pt; margin-block: 5px 7px; }
+      .rs-role { font-size: 8pt; }
+      .rs-tagline { font-size: 10.4pt; line-height: 1.65; }
+      .rs-stats { margin-block-start: 16px; gap: 7px; grid-template-columns: repeat(4, 1fr); }
+      .rs-stat { padding: 9px 7px; border-radius: 9px; }
+      .rs-stat b { font-size: 14pt; }
+      .rs-stat span { font-size: 7.4pt; }
+
+      .rs-sec { margin-block: 18px; }
+      .rs-sec > h2 { font-size: 12.6pt; }
+      .rs-lede { font-size: 9pt; margin-block-end: 12px; }
+      .rs-prose { margin-block-start: 12px; }
+      .rs-prose p { line-height: 1.72; margin-block-end: 9px; }
+
+      .rs-cards, .rs-skills { gap: 8px; grid-template-columns: 1fr 1fr; }
+      .rs-card, .rs-skills-card { padding: 12px 14px; border-radius: 10px; }
+      .rs-card { color: #111318; }
+      .rs-skills-card ul { gap: 8px; }
+      .rs-certs { gap: 6px; }
+      .rs-certs li { padding: 9px 12px; border-radius: 9px; }
+      .rs-courses li { padding: 4px 10px; font-size: 8.4pt; }
+
+      /* A pip is a coloured block, and a browser printing with
+         backgrounds off drops it. Forcing the colour is the one
+         place on this sheet where that is worth doing: without it
+         every skill reads as level zero. */
+      .rs-pips i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .rs-pips i.on { background: #4a3fd0 !important; }
+      .rs-pips i { background: #dcdfe8 !important; }
+
+      /* The breaks. A card, a certificate row and a skills group
+         are each one idea and none of them survives being cut. */
+      .rs-card, .rs-skills-card, .rs-certs li, .rs-stat {
+        break-inside: avoid; page-break-inside: avoid;
+      }
+      .rs-sec { break-inside: auto; }
+      .rs-sec > h2 { break-after: avoid; page-break-after: avoid; }
+      #focus, #certificates { break-before: auto; }
+
+      .rs-print-contact {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 6px 22px; list-style: none; margin-block-start: 10px;
+        font-size: 9.6pt; color: #111318;
+      }
+      .rs-print-contact li { direction: ltr; unicode-bidi: isolate; }
+
+      a { color: #111318; text-decoration: none; }
+      .rs-about { display: none; }
     }
   `
 }

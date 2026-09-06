@@ -162,6 +162,10 @@ const I18N = {
     link: 'پیوند', image: 'تصویر', hr: 'خط جدا', clear: 'پاک کردن قالب',
     linkPrompt: 'آدرس پیوند:',
     imagePrompt: 'آدرس تصویر (https):',
+    upload: 'آپلود تصویر',
+    uploading: 'در حال آپلود…',
+    uploadFailed: 'آپلود نشد:',
+    dropHere: 'تصویر را همین‌جا رها کنید',
     badUrl: 'آدرس باید با https:// شروع شود.',
 
     setupTitle: 'هنوز آماده نیست',
@@ -261,6 +265,10 @@ const I18N = {
     link: 'Link', image: 'Image', hr: 'Divider', clear: 'Clear formatting',
     linkPrompt: 'Link address:',
     imagePrompt: 'Image address (https):',
+    upload: 'Upload an image',
+    uploading: 'Uploading…',
+    uploadFailed: 'Upload failed:',
+    dropHere: 'Drop the image here',
     badUrl: 'The address has to start with https://',
 
     setupTitle: 'Not ready yet',
@@ -360,6 +368,10 @@ const I18N = {
     link: 'リンク', image: '画像', hr: '区切り線', clear: '書式をクリア',
     linkPrompt: 'リンク先のアドレス:',
     imagePrompt: '画像のアドレス (https):',
+    upload: '画像をアップロード',
+    uploading: 'アップロード中…',
+    uploadFailed: 'アップロードできませんでした:',
+    dropHere: 'ここに画像をドロップ',
     badUrl: 'アドレスは https:// で始まる必要があります。',
 
     setupTitle: 'まだ準備ができていません',
@@ -836,7 +848,32 @@ function css(accentRgb) {
     text-align: start;
   }
   .editor:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .16); }
-  .editor img { max-width: 100%; height: auto; }
+  .editor img { max-width: 100%; height: auto; border-radius: 8px; }
+
+  /* While an image is over the editor. Inset rather than an outer
+     ring so nothing shifts as it appears. */
+  .editor.drop-on {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 2px rgba(var(--accent-rgb), .35);
+  }
+
+  /* The upload's own line. It says what is happening and, when
+     something is refused, why - a picture that silently does not
+     appear is the failure this whole path is here to end. */
+  .up-msg {
+    margin-top: 8px; font-size: .82rem; color: var(--muted);
+  }
+  .up-msg.bad { color: var(--err); }
+
+  /* The file input behind the paperclip. CLIPPED, never pushed off
+     with a negative offset: this panel renders right-to-left in
+     Persian, where the left edge is the inline END and the browser
+     scrolls all the way out to meet it. */
+  .vh {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
   .editor blockquote {
     margin: 10px 0; padding-inline-start: 14px;
     border-inline-start: 3px solid var(--border); color: var(--muted);
@@ -1493,6 +1530,14 @@ function panelScript() {
       +     '<div class="tools">' + toolbar(t) + '</div>'
       +     '<div class="editor" id="cEditor" contenteditable="true" role="textbox"'
       +       ' dir="auto" aria-multiline="true" aria-label="' + esc(t.cBody) + '"></div>'
+
+      // The real file input, behind the paperclip. Clipped rather
+      // than pushed off-screen with a negative offset: this panel
+      // renders right-to-left in Persian, where the left edge is
+      // the inline END and the browser scrolls to it.
+      +     '<input type="file" id="cFile" accept="image/png,image/jpeg,image/webp,image/gif"'
+      +       ' multiple class="vh" onchange="MAIL.pickImages(this.files); this.value = String()">'
+      +     '<p class="up-msg" id="cUpMsg" hidden></p>'
       +   '</div>'
 
       +   '<textarea id="cSource" class="source" style="display:none"'
@@ -1559,11 +1604,71 @@ function panelScript() {
       ['ol', '1.', t.ol],
       ['link', '\u{1F517}', t.link],
       ['image', '\u{1F5BC}', t.image],
+      ['upload', '\u{1F4CE}', t.upload],
       ['hr', '\u2014', t.hr],
       ['clear', '\u232B', t.clear]
     ].map(function (row) { return tool(row[0], row[1], row[2]); }).join('')
       + '<span class="tool-sep" aria-hidden="true"></span>'
       + dirButtons(t);
+  }
+
+  // ==========================================
+  // armEditorDrop
+  //
+  // Paste and drag-and-drop, which is how a picture actually gets
+  // into a message. Nobody hunts for a toolbar button when they
+  // have just taken a screenshot; they press paste.
+  //
+  // Both paths are INTERCEPTED rather than left to the browser,
+  // and that is the point. A contenteditable handed an image on
+  // the clipboard inserts it as a data: URI - which looks right in
+  // the editor, is a multi-megabyte string in the message body,
+  // pushes the send past CONFIG.MAIL.MAX_BODY, and is stripped by
+  // most mail clients on arrival. Uploading it and inserting the
+  // URL is the same gesture with a result that survives.
+  //
+  // A paste carrying text as well as an image is left alone: that
+  // is somebody copying a paragraph out of a page, and the image
+  // in the clipboard is the page's decoration, not their intent.
+  // ==========================================
+  function armEditorDrop() {
+    var editor = el('cEditor');
+    if (!editor || editor.dataset.dropArmed) return;
+    editor.dataset.dropArmed = '1';
+
+    editor.addEventListener('paste', function (event) {
+      var data = event.clipboardData;
+      if (!data) return;
+      if (data.getData && data.getData('text/plain')) return;
+
+      var files = [].slice.call(data.files || []).filter(function (file) {
+        return file && /^image\//i.test(file.type);
+      });
+      if (!files.length) return;
+
+      event.preventDefault();
+      MAIL.pickImages(files);
+    });
+
+    ['dragenter', 'dragover'].forEach(function (name) {
+      editor.addEventListener(name, function (event) {
+        if (!event.dataTransfer) return;
+        event.preventDefault();
+        editor.classList.add('drop-on');
+      });
+    });
+    ['dragleave', 'dragend'].forEach(function (name) {
+      editor.addEventListener(name, function () { editor.classList.remove('drop-on'); });
+    });
+
+    editor.addEventListener('drop', function (event) {
+      editor.classList.remove('drop-on');
+      var files = [].slice.call((event.dataTransfer && event.dataTransfer.files) || [])
+        .filter(function (file) { return file && /^image\//i.test(file.type); });
+      if (!files.length) return;
+      event.preventDefault();
+      MAIL.pickImages(files);
+    });
   }
 
   // ==========================================
@@ -1748,6 +1853,7 @@ function panelScript() {
       if (data.subject) el('cSubject').value = data.subject;
       el('cEditor').innerHTML = data.html || '';
       state.replyTo = data.replyTo || null;
+      armEditorDrop();
       (data.to ? el('cSubject') : el('cTo')).focus();
     },
 
@@ -1830,6 +1936,10 @@ function panelScript() {
         else if (what === 'ol') document.execCommand('insertOrderedList');
         else if (what === 'hr') document.execCommand('insertHorizontalRule');
         else if (what === 'clear') document.execCommand('removeFormat');
+        else if (what === 'upload') {
+          var picker = el('cFile');
+          if (picker) picker.click();
+        }
         else if (what === 'link' || what === 'image') {
           var url = window.prompt(what === 'link' ? t.linkPrompt : t.imagePrompt, 'https://');
           if (!url) return;
@@ -1843,6 +1953,116 @@ function panelScript() {
           document.execCommand(what === 'link' ? 'createLink' : 'insertImage', false, url);
         }
       } catch (e) { /* an unsupported command is a no-op, not a crash */ }
+    },
+
+    // ==========================================
+    // pickImages
+    //
+    // What the paperclip, a paste and a drop all end up calling.
+    //
+    // The old image button could only ask for a URL that was
+    // already published somewhere else, which is not what anybody
+    // means by attaching a photo - there was nothing to preview
+    // because nothing had been uploaded. Now the bytes go to R2
+    // through the panel's own endpoint and the editor gets an img
+    // tag with the returned address, so the picture is visible in
+    // the box, in the preview tab and in the recipient's client.
+    //
+    // Uploaded one at a time on purpose: several megabytes of
+    // base64 in flight at once on a phone connection is how a
+    // browser starts dropping requests, and the caret has to be
+    // restored between insertions anyway.
+    // ==========================================
+    pickImages: function (files) {
+      var t = T();
+      var list = [].slice.call(files || []).filter(function (file) {
+        return file && /^image\//i.test(file.type);
+      });
+      if (!list.length) return;
+
+      var msg = el('cUpMsg');
+      var editor = el('cEditor');
+
+      // Where the caret was. A file dialog takes focus away from a
+      // contenteditable and the selection does not survive it, so
+      // the insertion point is remembered before the upload and
+      // restored after - without this every picture lands at the
+      // top of the message whatever the writer had selected.
+      var mark = null;
+      try {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount && editor && editor.contains(sel.anchorNode)) {
+          mark = sel.getRangeAt(0).cloneRange();
+        }
+      } catch (e) {}
+
+      function say(text, bad) {
+        if (!msg) return;
+        msg.hidden = !text;
+        msg.textContent = text || String();
+        msg.className = 'up-msg' + (bad ? ' bad' : String());
+      }
+
+      function insert(url) {
+        if (!editor) return;
+        editor.focus();
+        try {
+          if (mark) {
+            var sel2 = window.getSelection();
+            sel2.removeAllRanges();
+            sel2.addRange(mark);
+          }
+        } catch (e) {}
+
+        // A width, inline, and deliberately not in a stylesheet:
+        // this HTML is going to be read inside somebody else's
+        // mail client, and a client that strips the style
+        // attribute is rarer than one that ignores a style block.
+        document.execCommand('insertHTML', false,
+          '<img src="' + esc(url) + '" alt="" style="max-width:100%;height:auto;border-radius:8px">');
+
+        try {
+          var sel3 = window.getSelection();
+          if (sel3 && sel3.rangeCount) mark = sel3.getRangeAt(0).cloneRange();
+        } catch (e) {}
+      }
+
+      function step(index) {
+        if (index >= list.length) { say(String()); return; }
+        var file = list[index];
+        say(t.uploading + ' ' + (index + 1) + '/' + list.length);
+
+        var reader = new FileReader();
+        reader.onerror = function () {
+          say(t.uploadFailed + ' ' + file.name, true);
+        };
+        reader.onload = function () {
+          // readAsDataURL gives "data:image/png;base64,...." and
+          // only the part after the comma is sent; the type comes
+          // off the File, which is what the server checks the
+          // magic bytes against.
+          var data = String(reader.result || String());
+          var comma = data.indexOf(',');
+          if (comma < 0) { say(t.uploadFailed + ' ' + file.name, true); return; }
+
+          api('image', { type: String(file.type).toLowerCase(), data: data.slice(comma + 1) })
+            .then(function (res) {
+              if (!res) return;
+              if (res.error || !res.url) {
+                say(t.uploadFailed + ' ' + (res.message || res.error || String()), true);
+                return;
+              }
+              insert(res.url);
+              step(index + 1);
+            })
+            .catch(function (error) {
+              say(t.uploadFailed + ' ' + error.message, true);
+            });
+        };
+        reader.readAsDataURL(file);
+      }
+
+      step(0);
     },
 
     send: function () {

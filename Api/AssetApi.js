@@ -29,9 +29,44 @@ function decodeKey(raw) {
   }
 }
 
+/**
+ * Whether a decoded key is one this route will fetch.
+ *
+ * This used to be `key.includes('/')` - one flat level, nothing
+ * nested - and that single condition is why an attached photo
+ * never appeared anywhere on this site. Both writers of image
+ * objects store them under a dated prefix, which is the sane
+ * layout for anything a sweep has to expire:
+ *
+ *   contact/2026-09-06/<uuid>.png   the public contact form
+ *   mail/2026-09-06/<uuid>.png      inbound mail and the panel
+ *
+ * Every one of those has a slash in it, so every request for one
+ * was answered 400 invalid_asset. The message in the mailbox said
+ * "1 attachment" and showed a broken image, and the picture it was
+ * pointing at was sitting in the bucket the whole time.
+ *
+ * What the check is actually FOR is path traversal, and that is
+ * what it does now: no empty segments, no '.' or '..' segment, no
+ * leading slash, no backslash (which some stores treat as a
+ * separator), and a bounded depth. A slash between two ordinary
+ * segments was never the danger - '..' was.
+ */
+function safeKey(key) {
+  if (!key || key.length > 512) return false
+  if (key.startsWith('/') || key.includes('\\')) return false
+
+  const segments = key.split('/')
+  if (segments.length > 8) return false
+
+  return segments.every(segment =>
+    segment.length > 0 && segment !== '.' && segment !== '..')
+}
+
+
 export async function handleAsset(url, request, gameId, requestId, GAMES, env) {
   const key = decodeKey(url.pathname.replace('/assets/', ''))
-  if (!key || key.includes('..') || key.includes('/')) {
+  if (!safeKey(key)) {
     return createJsonResponse({ error: 'invalid_asset', message: 'Invalid asset path', requestId }, 400)
   }
 

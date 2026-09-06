@@ -134,17 +134,37 @@ const RELEASES = [
           fa: [
             'اگر برای کار یا همکاری آمده‌ای: کارها، سطح مهارت‌ها و مدارک، همه در یک صفحه.',
             'هر مهارت کنارش نوشته کجای همین سایت استفاده شده — یعنی می‌شود همان‌جا بازش کرد و دید.',
+            'یک دکمه هم دارد که همان صفحه را به‌صورت PDF تمیز ذخیره می‌کند — به همان زبانی که داری می‌خوانی.',
             'صفحه‌ی «درباره‌ی من» سر جایش هست و عوض نشده؛ آن یکی خودمانی است، این یکی رسمی.'
           ],
           en: [
             'If you are here about work: the projects, the skill levels and the certificates, on one page.',
             'Every skill names where on this site it was used — so you can open it and look rather than take my word for it.',
+            'There is a button that saves the page as a clean PDF, in whichever language you are reading it in.',
             'The About page is unchanged and still there. That one is the casual version; this is the formal one.'
           ],
           ja: [
             'お仕事のご相談でお越しの方へ。制作物、スキルレベル、資格を 1 ページにまとめました。',
             '各スキルには、このサイトのどこで使ったかを併記しています。そのまま開いて確認していただけます。',
+            'ご覧の言語のまま、きれいな PDF として保存できるボタンもご用意しました。',
             '「私について」のページはそのまま残しています。あちらはくだけた内容、こちらは正式な内容です。'
+          ]
+        }
+      },
+      {
+        title: { fa: 'عکس‌ها، در پیام‌ها', en: 'Pictures, in messages', ja: '画像のやり取り' },
+        items: {
+          fa: [
+            'اگر برایم عکسی بفرستی — چه از فرم تماس، چه با ایمیل معمولی — حالا خود عکس را می‌بینم، نه فقط اسم فایلش.',
+            'برای یک باگ، یک اسکرین‌شات از هر توضیحی سریع‌تر جواب می‌دهد. حالا همان کار می‌کند.'
+          ],
+          en: [
+            'If you send me a picture — through the contact form or as ordinary email — I now see the picture itself, not the name of a file.',
+            'For a bug, one screenshot beats any description. That works now.'
+          ],
+          ja: [
+            'お問い合わせフォームからでも、通常のメールからでも、画像をお送りいただくと、ファイル名ではなく画像そのものが表示されるようになりました。',
+            '不具合のご報告では、スクリーンショット 1 枚がどんな説明よりも早く伝わります。それが使えるようになりました。'
           ]
         }
       },

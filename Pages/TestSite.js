@@ -378,6 +378,7 @@ const TEST_GROUPS = [
       { kind: 'mlTable' }, { kind: 'mlSend' }, { kind: 'mlList' },
       { kind: 'mlFolders' }, { kind: 'mlSystem' }, { kind: 'mlBadAction' },
       { kind: 'mlOldPath' }, { kind: 'mlNoIndex' },
+      { kind: 'mlImgType' }, { kind: 'mlImgBytes' }, { kind: 'mlAssetKey' },
       { kind: 'ctPage' }, { kind: 'ctToken' }, { kind: 'ctEmpty' }, { kind: 'ctHoneypot' }
     ]
   }
@@ -458,6 +459,9 @@ const I18N = {
     t_mlBadAction: 'رد کردن action نامعتبر', d_mlBadAction: 'باید 400 با فهرست actionهای واقعی بدهد',
     t_mlOldPath: 'بسته بودن مسیر قدیمی', d_mlOldPath: 'مسیر /mail نباید دیگر جواب بدهد',
     t_mlNoIndex: 'ایندکس نشدن پنل', d_mlNoIndex: 'robots.txt باید مسیر پنل را ببندد',
+    t_mlImgType: 'رد تصویر با نوع غلط', d_mlImgType: 'آپلود چیزی که تصویر نیست باید رد شود',
+    t_mlImgBytes: 'رد تصویر جعلی', d_mlImgBytes: 'فایلی که فقط اسمش png است باید از روی بایت‌ها رد شود',
+    t_mlAssetKey: 'سرو تصویر پوشه‌دار', d_mlAssetKey: 'کلید تودرتوی /assets/ باید 404 بدهد نه 400',
     t_ctPage: 'صفحه‌ی تماس', d_ctPage: 'صفحه باید باز شود و فرم داشته باشد',
     t_ctToken: 'توکن ضد اسپم', d_ctToken: 'فرم باید توکن امضاشده و فیلد تله داشته باشد',
     t_ctEmpty: 'رد کردن فرم خالی', d_ctEmpty: 'ارسال بدون محتوا باید رد شود',
@@ -708,6 +712,9 @@ const I18N = {
     t_mlBadAction: 'Unknown action refused', d_mlBadAction: 'must answer 400 and name the real actions',
     t_mlOldPath: 'Old path closed', d_mlOldPath: '/mail must no longer answer',
     t_mlNoIndex: 'Panel not indexable', d_mlNoIndex: 'robots.txt must disallow the panel path',
+    t_mlImgType: 'Wrong image type refused', d_mlImgType: 'uploading a non-image must be refused',
+    t_mlImgBytes: 'Fake image refused', d_mlImgBytes: 'a file merely NAMED png must fail on its bytes',
+    t_mlAssetKey: 'Nested asset key served', d_mlAssetKey: 'a key with a slash must 404, never 400',
     t_ctPage: 'Contact page', d_ctPage: 'the page must render and carry its form',
     t_ctToken: 'Anti-spam fields', d_ctToken: 'the form must carry a signed token and a honeypot',
     t_ctEmpty: 'Empty submission refused', d_ctEmpty: 'posting nothing must be rejected',
@@ -955,6 +962,9 @@ const I18N = {
     t_mlBadAction: '不正な action の拒否', d_mlBadAction: '400 を返し、実在する action を示すこと',
     t_mlOldPath: '旧パスの閉鎖', d_mlOldPath: '/mail が応答しないこと',
     t_mlNoIndex: 'パネルが索引対象外', d_mlNoIndex: 'robots.txt がパネルのパスを拒否すること',
+    t_mlImgType: '画像以外の拒否', d_mlImgType: '画像でないものの送信は拒否されること',
+    t_mlImgBytes: '偽装画像の拒否', d_mlImgBytes: '名前だけ png のファイルは中身で拒否されること',
+    t_mlAssetKey: '入れ子キーの配信', d_mlAssetKey: 'スラッシュを含むキーは 400 ではなく 404 を返すこと',
     t_ctPage: 'お問い合わせページ', d_ctPage: 'ページが表示され、フォームがあること',
     t_ctToken: 'スパム対策フィールド', d_ctToken: '署名付きトークンとハニーポットがあること',
     t_ctEmpty: '空の送信を拒否', d_ctEmpty: '内容のない送信が拒否されること',
@@ -2678,6 +2688,59 @@ function dashClientScript() {
           if (r.status === 404) return { status: 'pass', code: 404, ping: r.ping };
           return { status: 'fail', code: r.status, ping: r.ping, noteKey: 'mlOldOpen' };
         });
+      },
+
+      /* ---------- images ----------
+
+         Three checks, and every one of them is a REFUSAL or a
+         status code. Nothing here uploads a picture: this suite
+         runs against the live deployment, and a test that wrote
+         into the bucket on every run would fill it with rubbish
+         nobody ever looks at.
+
+         The first two send something the endpoint is required to
+         turn away, which proves the check is running without
+         storing anything. The third asks for an object that does
+         not exist and asserts the SHAPE of the failure - 404 and
+         not 400 - because 400 there was the bug: /assets/ refused
+         any key containing a slash, so every dated upload the
+         contact form and the mailbox make was unreachable and
+         every attached photo rendered as a broken image. */
+      mlImgType: function () {
+        return mlApi('image', { type: 'application/pdf', data: 'AAAA' }).then(function (out) {
+          if (out.net) return netFail();
+          if (out.unauth) return { status: 'warn', code: out.status, ping: out.ping, noteKey: 'mlNoAuth' };
+          if (out.status === 415) return { status: 'pass', code: 415, ping: out.ping };
+          return { status: 'fail', code: out.status, ping: out.ping, noteKey: 'expected', noteVal: '415' };
+        });
+      },
+
+      /* A GIF header, declared as a PNG. The declared type is on
+         the allow-list, so this gets past the first gate and has
+         to be caught by the magic bytes - which is the gate that
+         actually matters. */
+      mlImgBytes: function () {
+        return mlApi('image', { type: 'image/png', data: 'R0lGODlhAQABAAAAACw=' }).then(function (out) {
+          if (out.net) return netFail();
+          if (out.unauth) return { status: 'warn', code: out.status, ping: out.ping, noteKey: 'mlNoAuth' };
+          if (out.status === 415) return { status: 'pass', code: 415, ping: out.ping };
+          return { status: 'fail', code: out.status, ping: out.ping, noteKey: 'expected', noteVal: '415' };
+        });
+      },
+
+      mlAssetKey: function () {
+        return fetchTest('/assets/mail/2026-01-01/no-such-object.png', { method: 'GET' })
+          .then(function (r) {
+            if (!r.ok) return netFail();
+            if (r.status === 404) return { status: 'pass', code: 404, ping: r.ping };
+
+            // 400 means the path validator is rejecting the key
+            // itself, so no dated upload can ever be served.
+            return {
+              status: 'fail', code: r.status, ping: r.ping,
+              noteKey: 'expected', noteVal: '404'
+            };
+          });
       },
 
       mlNoIndex: function () {

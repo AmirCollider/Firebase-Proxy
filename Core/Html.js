@@ -177,3 +177,41 @@ export function hexToRgb(hex) {
   const int = parseInt(full || '667eea', 16)
   return `${(int >> 16) & 255}, ${(int >> 8) & 255}, ${int & 255}`
 }
+
+// ==========================================
+// textFromHtml
+// A plain-text rendering of an HTML body.
+//
+// Two callers, and they want it for different reasons that happen
+// to need the same function:
+//
+//   Api/MailApi.js   every message goes out multipart with both
+//                    parts. HTML alone scores worse with every
+//                    spam filter there is and reads as an empty
+//                    message in a client set to plain text.
+//   Mail/Inbound.js  a received message with no text/plain part -
+//                    which is most of them - would otherwise have
+//                    an empty preview in the panel's list, because
+//                    that column is what the list reads.
+//
+// Not a sanitiser and not a parser. It is a readable fallback, and
+// anything it misses shows up as a stray angle bracket in a
+// preview rather than as markup somewhere it matters.
+// ==========================================
+export function textFromHtml(html) {
+  return String(html || '')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<\/(p|div|tr|h[1-6]|li)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim()
+}

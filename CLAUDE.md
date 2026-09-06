@@ -164,6 +164,10 @@ Mail/                  The mailbox behind CONFIG.MAIL.PATH
   Store.js             every LICENSE_DB query the panel makes
   Inbound.js           the MIME parser + the email() handler's body
   Spam.js              the contact form's filter — five scored signals
+  Images.js            THE image rule: what counts as one (declared type
+                       AND magic bytes) and where it goes (R2, never a
+                       data URI). Read by Pages/Contact.js, Mail/Inbound.js
+                       and Api/MailApi.js — one copy of the check
 
 Commerce/              The DocSnap checkout: Orders, Provider (NOWPayments),
                        Fulfilment, Emails, Mailer, Seal (AES-GCM key sealing)
@@ -506,7 +510,19 @@ One mailbox: `CONFIG.MAIL.ADDRESS` = `amircollider@amircollider.com`.
 
 Actions: `status`, `list`, `get`, `send`, `read`, `readAll`, `star`,
 `archive`, `delete`, `system`, `systemGet`, `folders`, `folderSave`,
-`folderDrop`, `move`, `blocks`, `blockAdd`, `blockDrop`.
+`folderDrop`, `move`, `blocks`, `blockAdd`, `blockDrop`, `image`.
+
+**Images, both directions, live in R2 and never in a row.** `image` takes
+base64 out of the compose box, checks the declared type against the first
+bytes, writes it under `mail/<date>/<uuid>.<ext>` and answers with the
+absolute URL the editor puts in an `img` tag — so the picture is visible
+while writing, in the preview tab, and in the recipient's client. Inbound
+mail is the same store: `storeInboundImages()` in `Mail/Inbound.js` keeps
+image parts, rewrites every `cid:` reference in the body to the stored URL,
+and appends anything the body did not already show as a thumbnail strip.
+A received photo used to read as the words "1 attachment"; a `cid:` inline
+image — which is what every real mail client sends — was dropped twice
+over, as a part and as a dangling reference.
 
 **0013 and 0014 are probed separately** (`mailTableReady` / `foldersReady`),
 because a deployment can have one and not the other. Without 0014 the
@@ -547,8 +563,10 @@ Four things that will bite a change here:
    as the operator. Do not add either flag to make a message "look right".
 3. **The MIME parser is hand-written** (`Mail/Inbound.js`) because rule 7
    forbids dependencies. It handles folded headers, RFC 2047 encoded-words,
-   multipart, quoted-printable and base64. Attachments are **noted, never
-   stored**. Two bugs already found and fixed there: the `boundary=` and
+   multipart, quoted-printable and base64. **Images are kept** (R2, capped
+   by `MAX_IMAGES_INBOUND` and `MAX_IMAGE_BYTES`); every other attachment is
+   still **noted, never stored** — an image is the one attachment whose
+   whole content is what it looks like. Two bugs already found and fixed there: the `boundary=` and
    `filename=` parameters are **case-sensitive** and must not be lowercased
    with the rest of the header — doing so made every multipart message,
    which is every message a real client sends, parse as empty.
@@ -676,6 +694,9 @@ nothing else breaks — a confusing hour.
 | Tune the spam filter | `Mail/Spam.js`. Every signal is scored and named on the result, so a refusal can be explained. Test it with the ten-case harness before trusting a change |
 | Change what the contact form accepts | `CONFIG.CONTACT` — limits, allowed types, retention. The page prints these numbers, so they are one constant rather than two |
 | Change what the resume says | `Pages/Resume.js`. Every visible string is an `I18N` key in all three languages — `SKILLS`, `CERTIFICATES` and the project rows carry KEYS, never words. `SKILLS` carries the level AND the evidence key; a level with no project behind it does not belong there |
+| Change the resume's PDF | the `@media print` block in `Pages/Resume.js` — that block **is** the export. There is no PDF library and rule 7 forbids adding one; the button only calls `print()`, and the browser writes a real, selectable PDF of whichever language is being read. The page ships a `.rs-print-contact` list that is hidden on screen, because the print rules hide every control and a printed resume with no address on it is unanswerable |
+| Add a stat to the resume's header | `STATS` in `Pages/Resume.js`. **Nothing there may imply the owner's age** — "10+ years programming" beside "programming since eight", which he does publish, subtracts to a birth year he does not |
+| Change what an image in mail is allowed to be, or where it goes | `Mail/Images.js` — one file, read by the contact form, the inbound parser and the panel's upload |
 | Change what a resume project card says about a GAME | nothing here — `handleResume` renders the MERGED registry, so a game's pitch is the one its own landing page shows. `neon-katana` ships no `landing` baseline, so its pitch exists only in the panel |
 | Add a mail panel action | `Api/MailApi.js` switch + the `ACTIONS` list + UI in `Pages/MailPanel.js` |
 | Change what a mail query reads | `Mail/Store.js` — the panel's handlers run no SQL of their own |
@@ -812,6 +833,15 @@ nothing else breaks — a confusing hour.
 - An attachment is validated by its declared type **and** its first bytes,
   and is stored under a name of ours. An uploaded filename is
   attacker-controlled text that would otherwise become a path in a bucket.
+- **`/assets/` serves NESTED keys.** It refused anything containing a slash
+  until 2026-09-06, and every image this site stores lives under a dated
+  prefix (`contact/<date>/…`, `mail/<date>/…`) — so every attached photo
+  answered 400 and rendered as a broken image while the object sat in the
+  bucket. `safeKey()` in `Api/AssetApi.js` now checks what the rule was
+  always for: no empty segment, no `.` or `..` segment, no leading slash,
+  no backslash, bounded depth. A slash between two ordinary segments was
+  never the danger.
+- Nothing on the resume may let a reader derive the owner's age.
 - Nothing on this site publishes the owner's legal name. It is on every
   certificate, which is exactly why the resume page lists those as facts
   and never links the files.

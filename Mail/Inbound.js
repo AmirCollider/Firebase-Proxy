@@ -41,8 +41,11 @@
 //   handleInboundEmail(...)  the email() handler's body
 // ==========================================
 
+import { CONFIG } from '../Config.js'
+import { escapeHtml, textFromHtml } from '../Core/Html.js'
 import { logInfo, logWarning } from '../Core/Logging.js'
 import { db, storeMessage, mailTableReady, isBlocked, noteBlockHit } from './Store.js'
+import { putImage, base64ToBytes } from './Images.js'
 
 
 // ==========================================
@@ -280,18 +283,64 @@ function walkParts(headers, body, found, depth = 0) {
   }
 
   const disposition = String(headers['content-disposition'] || '')
+  const filename = (disposition.match(/filename\s*=\s*"([^"]+)"/i)
+    || disposition.match(/filename\s*=\s*([^;\s]+)/i)
+    || headers['content-type'] && String(headers['content-type']).match(/name\s*=\s*"([^"]+)"/i)
+    || [])[1] || ''
 
-  // An attachment is noted, never stored. Storing them would mean
-  // this table grows with whatever anybody sends, and the panel
-  // has nowhere to put a binary anyway.
+  // ---------- images ----------
+  //
+  // An image is KEPT, and this is the part that used to be missing.
+  // Before it, a photographed receipt arrived in the panel as the
+  // words "Attachments (not stored): IMG_0421.jpg" - which is not
+  // a mailbox, it is a description of one.
+  //
+  // Two shapes have to be caught and they look nothing alike:
+  //
+  //   an ATTACHMENT   Content-Disposition: attachment, its own
+  //                   part, shown under the message.
+  //   an INLINE image Content-Disposition: inline with a
+  //                   Content-ID, referenced from the HTML as
+  //                   src="cid:something". This is what every
+  //                   normal mail client produces when somebody
+  //                   drags a picture into the body, and the old
+  //                   code dropped it twice over: the part fell
+  //                   through as neither text nor html, and the
+  //                   cid: in the body pointed at nothing.
+  //
+  // Only the raw base64 is collected here. Nothing is decoded or
+  // written yet, because walkParts is synchronous and storing is
+  // not - parseEmail stays a pure function of its input and the
+  // writing happens in handleInboundEmail.
+  //
+  // The Content-ID is read off the ORIGINAL header, angle brackets
+  // stripped: it is an identifier the sender chose and matching it
+  // case-folded against the body would miss.
+  if (type.startsWith('image/') && found.images.length < CONFIG.MAIL.MAX_IMAGES_INBOUND) {
+    const cid = String(headers['content-id'] || '').trim().replace(/^<|>$/g, '')
+    found.images.push({
+      type: type.toLowerCase(),
+      cid,
+      name: decodeWord(filename) || 'image',
+      // The transfer encoding decides how to read the bytes later.
+      encoding: String(headers['content-transfer-encoding'] || '').trim().toLowerCase(),
+      raw: body,
+      inline: !!cid || /inline/i.test(disposition)
+    })
+    return
+  }
+
+  // Anything else attached is still noted and still not stored.
+  // The reasoning has not changed for those: this table would grow
+  // with whatever anybody sends, and the panel has nowhere to put
+  // an arbitrary binary. An image is the exception because it is
+  // the one attachment whose whole content is what it looks like.
   //
   // The keyword is matched case-insensitively; the FILENAME is
   // read off the original header, for the same reason the
   // boundary is - lowercasing it renames somebody's Invoice.PDF.
   if (/attachment/i.test(disposition)) {
-    const name = (disposition.match(/filename\s*=\s*"([^"]+)"/i)
-      || disposition.match(/filename\s*=\s*([^;\s]+)/i) || [])[1] || 'attachment'
-    found.attachments.push(decodeWord(name))
+    found.attachments.push(filename ? decodeWord(filename) : 'attachment')
     return
   }
 
@@ -307,7 +356,7 @@ function walkParts(headers, body, found, depth = 0) {
 // ==========================================
 export function parseEmail(raw) {
   const { headers, body } = splitHeaders(raw)
-  const found = { html: [], text: [], attachments: [] }
+  const found = { html: [], text: [], attachments: [], images: [] }
 
   try {
     walkParts(headers, body, found)
@@ -349,9 +398,127 @@ export function parseEmail(raw) {
     inReplyTo: headers['in-reply-to'] || '',
     date: headers.date || '',
     attachments: found.attachments,
+    images: found.images,
     truncated,
     rawExcerpt: String(raw || '').slice(0, MAX_RAW_EXCERPT)
   }
+}
+
+
+// ==========================================
+// storeInboundImages
+//
+// Writes the image parts a message arrived with, then makes the
+// stored body point at them. Returns the html and text to store.
+//
+// Two jobs, and the second is the one that matters:
+//
+//   1. Put the bytes in R2, capped in count by
+//      CONFIG.MAIL.MAX_IMAGES_INBOUND and in size inside
+//      putImage. A stranger can send mail to a published address,
+//      so both caps are the bound on what they can make this
+//      Worker keep.
+//   2. REWRITE the body. An inline image is referenced as
+//      src="cid:whatever" and that reference means nothing outside
+//      the original MIME message - left alone it renders as a
+//      broken image in the panel and in anything the message is
+//      forwarded to. Each cid: becomes the stored URL. Images the
+//      body never referenced are appended underneath as a strip,
+//      which is what an attached photo is.
+//
+// Never throws. It is called from the inbound path, where a thrown
+// error is a delivery failure to Cloudflare and therefore a BOUNCE
+// back to the person who wrote - see rule 1 in CLAUDE.md 8b.
+// ==========================================
+async function storeInboundImages(env, parsed) {
+  let html = parsed.html
+  let text = parsed.text
+  const images = parsed.images || []
+  if (!images.length) return { html, text, stored: 0 }
+
+  const kept = []
+
+  for (const part of images) {
+    try {
+      // Only base64 parts are read. A binary or 8bit image part is
+      // legal in the RFC and produced by nothing that sends mail
+      // over SMTP, and guessing at the bytes of one would store a
+      // corrupt file rather than admit it could not read it.
+      if (part.encoding !== 'base64') continue
+
+      const bytes = base64ToBytes(part.raw)
+      if (!bytes.length) continue
+
+      const put = await putImage(env, { bytes, type: part.type })
+      if (put) kept.push({ ...put, cid: part.cid, name: part.name })
+    } catch (error) {
+      logWarning('Inbound image skipped', { error: error.message })
+    }
+  }
+
+  if (!kept.length) return { html, text, stored: 0 }
+
+  // ---------- the cid: rewrite ----------
+  const referenced = new Set()
+  if (html) {
+    for (const image of kept) {
+      if (!image.cid) continue
+      // The id goes into a regular expression, so it is escaped
+      // first: a Content-ID is a string the sender chose and one
+      // containing a dot or a plus would otherwise match more than
+      // itself.
+      const safe = image.cid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const pattern = new RegExp('cid:' + safe, 'gi')
+      if (pattern.test(html)) {
+        referenced.add(image.key)
+        html = html.replace(new RegExp('cid:' + safe, 'gi'), image.url)
+      }
+    }
+  }
+
+  // ---------- the strip ----------
+  //
+  // Everything the body did not already show. Each one is a link
+  // as well as a picture, so a thumbnail that is too small to read
+  // opens at full size.
+  const loose = kept.filter(image => !referenced.has(image.key))
+  if (loose.length) {
+    const strip = '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #dbe1ee">'
+      + '<p style="margin:0 0 8px;color:#5d6880;font-size:13px;font-weight:600">'
+      + loose.length + ' image' + (loose.length === 1 ? '' : 's') + '</p>'
+      + loose.map(image =>
+          '<a href="' + escapeHtml(image.url) + '" style="display:inline-block;margin:0 8px 8px 0">'
+          + '<img src="' + escapeHtml(image.url) + '" alt="' + escapeHtml(image.name) + '"'
+          + ' style="max-width:260px;max-height:200px;border:1px solid #dbe1ee;border-radius:8px"></a>'
+        ).join('')
+      + '</div>'
+
+    // A message with no HTML part at all still gets one, because
+    // the panel renders html when there is html and the pictures
+    // have to hang somewhere. The text part keeps the addresses so
+    // a plain-text reader is not told about images it cannot see
+    // and given no way to reach them.
+    html = html ? html + strip : strip
+  }
+
+  // The plain-text part, and the list preview that reads it.
+  //
+  // A message whose only body is HTML - which is most mail with a
+  // picture in it - arrives here with an empty text column, and
+  // the panel's list builds its one-line preview from exactly that
+  // column. Appending bare URLs to nothing made the preview BE a
+  // URL: an inbox where a photo from somebody reads as
+  // "https://amircollider.com/assets/mail/2026-09-06/2f71...".
+  //
+  // So the text is derived from the body first when there is none,
+  // and the addresses go after it - where a plain-text reader can
+  // still reach a picture they cannot see, without that being the
+  // first thing anybody reads in the list.
+  const urls = kept.map(image => image.url).join('\n')
+  const base = text || textFromHtml(html)
+  text = base ? base + '\n\n' + urls : urls
+
+  return { html, text, stored: kept.length }
 }
 
 
@@ -416,6 +583,12 @@ export async function handleInboundEmail(message, env) {
     return
   }
 
+  // The pictures, before the row is written. Their URLs go INTO
+  // the stored body, so this has to happen first - a message
+  // stored and then patched would be a message the panel could
+  // render in between with broken images in it.
+  const withImages = await storeInboundImages(env, parsed)
+
   const id = await storeMessage(database, {
     direction: 'in',
     from: envelopeFrom || parsed.from,
@@ -423,8 +596,8 @@ export async function handleInboundEmail(message, env) {
     to: envelopeTo || parsed.to,
     replyTo: parsed.replyTo || envelopeFrom || parsed.from,
     subject: parsed.subject,
-    html: parsed.html,
-    text: parsed.text,
+    html: withImages.html,
+    text: withImages.text,
     messageId: parsed.messageId,
     inReplyTo: parsed.inReplyTo,
     status: 'received',
@@ -441,6 +614,7 @@ export async function handleInboundEmail(message, env) {
     from: envelopeFrom,
     to: envelopeTo,
     truncated: parsed.truncated,
-    attachments: parsed.attachments.length
+    attachments: parsed.attachments.length,
+    images: withImages.stored
   })
 }
