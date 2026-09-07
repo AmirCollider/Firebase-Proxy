@@ -57,16 +57,29 @@ const PAGE_PATH = '/resume'
 // a claim a reader can verify costs nothing to make and a claim
 // they cannot costs the rest of the page.
 // ==========================================
-// There was a fifth here once - years programming - and it came
-// off deliberately. The owner says publicly that he started at
-// eight and nowhere says how old he is; a "10+ years" beside that
-// subtracts to an age he chose not to publish. A resume should
-// not do arithmetic on its author.
+// Four facts, and every one of them chosen to still be true next
+// month. Two rules produced this list and both came from things
+// that were wrong here before:
+//
+//   NOTHING THAT COUNTS PRODUCTS. "4 products shipped" and "one of
+//   them sells" expire the day a fifth goes up or a second one
+//   starts earning, and in the meantime they quietly rank the
+//   open-source tool below the commercial one - which is backwards.
+//   A library published under MIT is engineering credit, not a
+//   product that failed to charge.
+//
+//   NOTHING THAT IMPLIES AN AGE. There was a "10+ years
+//   programming" here. The owner says publicly that he started at
+//   eight and nowhere says how old he is; the two together
+//   subtract to a birth year he chose not to publish.
+//
+// What is left is structural: the shape of the work, not a
+// snapshot of its inventory.
 const STATS = [
-  { key: 'sShipped', value: '4' },
+  { key: 'sLayers', value: '3' },
   { key: 'sLangs', value: '3' },
-  { key: 'sStack', value: '100%' },
-  { key: 'sDeps', value: '0' }
+  { key: 'sDeps', value: '0' },
+  { key: 'sOpen', value: 'MIT' }
 ]
 
 
@@ -161,12 +174,12 @@ const I18N = {
   fa: {
     locale: 'fa-IR',
     metaTitle: 'رزومه — AmirCollider',
-    metaDesc: 'برنامه‌نویس بازی؛ یونیتی و C#. دو بازی منتشرشده، دو افزونه‌ی ادیتور یونیتی و کل سرویس پشتشان روی Cloudflare Workers — همه نوشته‌ی خودم و همه قابل بررسی.',
+    metaDesc: 'برنامه‌نویس بازی؛ یونیتی و C#. کار در سه لایه — گیم‌پلی، ابزارهای ادیتور، و سرویسی که پشت هر دو کار می‌کند — و هر پروژه از همین سایت قابل باز کردن و بررسی است.',
     crumb: 'رزومه',
 
     role: 'برنامه‌نویس بازی · یونیتی و C#',
     h1: 'کارنامه',
-    tagline: 'بازی می‌سازم، ابزارِ ساختش را می‌نویسم، و سرویسی که پشت هر دو کار می‌کند هم مال خودم است.',
+    tagline: 'از گیم‌پلی تا زیرساخت: پروژه را از ایده تا دست کاربر می‌برم و بعد از انتشار هم کنارش می‌مانم.',
     ctaContact: 'برای همکاری بنویس',
     ctaWork: 'کارها را ببین',
     ctaPdf: 'دریافت PDF',
@@ -182,16 +195,16 @@ const I18N = {
     jContact: 'تماس',
     jumpLabel: 'پیمایش بخش‌های رزومه',
 
-    sShipped: 'محصول منتشرشده',
+    sLayers: 'لایه: گیم‌پلی، ابزار، زیرساخت',
     sLangs: 'زبان، روی هر محصول',
-    sStack: 'کدِ نوشته‌ی خودم',
     sDeps: 'وابستگی بیرونی، بدون مرحله‌ی بیلد',
+    sOpen: 'کتابخانه‌ی متن‌باز، برای جامعه‌ی یونیتی',
 
     summaryHead: 'در یک نگاه',
     summary: [
-      'کارم سه لایه دارد و هر سه را خودم می‌نویسم: بازی، ابزاری که ساختنش را سریع‌تر می‌کند، و سرویسی که هر دو رویش می‌ایستند. این‌ها نمونه‌کار تمرینی نیستند؛ منتشر شده‌اند، آدم‌ها استفاده می‌کنند و یکی‌شان فروش دارد.',
+      'کارم سه لایه دارد: خودِ بازی، ابزارهایی که ساختنش را سریع‌تر می‌کنند، و سرویسی که هر دو رویش می‌ایستند. کار کردن در هر سه لایه یعنی وقتی چیزی خراب می‌شود می‌دانم در کدام‌شان دنبالش بگردم، و وقتی تصمیمی گرفته می‌شود می‌دانم هزینه‌اش بعداً کجا ظاهر خواهد شد.',
       'داخل یونیتی کارم سیستم است: چیزی که باید پایدار بماند وقتی بازیکن کاری می‌کند که فکرش را نکرده بودی. ذخیره‌ی ابری، جدول امتیاز، فروشگاه درون‌برنامه‌ای و اقتصادش، تولید بی‌پایان مرحله، و بیلد اندرویدی که روی گوشی مردم هم همان‌طور کار کند که روی سیستم خودم.',
-      'بیرون از یونیتی، افزونه‌ی ادیتور می‌نویسم و همان چیزی را که می‌فروشم خودم پشتیبانی می‌کنم: صدور کلید، فعال‌سازی روی دستگاه، پرداخت، تحویل ایمیل. وقتی کسی نصفه‌شب کلیدش کار نکند، تنها کسی که می‌تواند درستش کند من هستم — و همین یک جمله بیشتر از هر ادعایی درباره‌ی «مسئولیت‌پذیری» می‌گوید.'
+      'بیرون از یونیتی افزونه‌ی ادیتور می‌نویسم و زیرساختِ پشتش را هم: صدور کلید، فعال‌سازی روی دستگاه، پرداخت، تحویل. روش کارم تکرارشونده است — نسخه‌ای که پایدار باشد زود منتشر می‌شود، با بازخورد کاربر و داده‌ی واقعی بهتر می‌شود، و سیستم‌های عملیاتی به‌صورت فعال نگهداری می‌شوند، نه فقط وقتی خراب شدند.'
     ],
 
     kgame: 'بازی',
@@ -224,7 +237,7 @@ const I18N = {
     bPanels: 'پنل‌های مدیریت',
     bMailbox: 'صندوق پستی',
     workHead: 'کارها',
-    workLede: 'هر چهارتا منتشر شده‌اند و از همین سایت باز می‌شوند.',
+    workLede: 'بازی، ابزار، و سرویسی که پشتشان کار می‌کند — هر کدام منتشر شده و از همین سایت باز می‌شود.',
 
     skillsHead: 'مهارت‌ها',
     skillsLede: 'سطح هر مهارت از کاری که واقعاً لازم بوده در آمده، نه از مدت آشنایی. ستون آخر می‌گوید کجا ازش استفاده شده — اگر چیزی پروژه‌ای پشتش نداشته باشد، اصلاً در این جدول نیست.',
@@ -236,9 +249,9 @@ const I18N = {
     lvl3: 'مسلط',
     lvl2: 'در حد کار',
 
-    evGames: 'هر دو بازی',
-    evAll: 'هر چهار محصول',
-    evStores: 'فروشگاه هر دو بازی',
+    evGames: 'بازی‌ها',
+    evAll: 'همه‌ی پروژه‌ها',
+    evStores: 'فروشگاه درون‌برنامه‌ای بازی‌ها',
     evChrono: 'Chrono Blades',
     evAndroid: 'بیلدهای اندروید',
     evDocSnap: 'Unity DocSnap',
@@ -248,7 +261,7 @@ const I18N = {
     evOauth: 'ورود با گوگل',
     evCheckout: 'چک‌اوت DocSnap',
     evLicense: 'لایسنس DocSnap',
-    evDb: 'سه دیتابیس D1',
+    evDb: 'دیتابیس‌های D1 سرویس',
     evSite: 'همین سایت',
     evI18n: 'کل سایت، سه‌زبانه',
     evSeo: 'sitemap و داده‌ی ساخت‌یافته',
@@ -256,9 +269,9 @@ const I18N = {
 
     focusHead: 'مسیری که جلو می‌روم',
     focus: [
-      'تنها کار می‌کنم و این تا اینجا انتخاب بوده، نه ناچاری. کار را خودم تعریف می‌کنم، می‌سازم، منتشر می‌کنم و بعد خودم نگهش می‌دارم — ایمیل پشتیبانی هم به خودم می‌رسد. عادت دارم به‌جای بحث بر سر بهترین راه، چیزی را که کار می‌کند منتشر کنم و بعد بهترش کنم.',
-      'این‌ها را محصول می‌بینم، نه نمونه‌کار. Unity DocSnap همین حالا فروش دارد، Chrono Blades خرید درون‌برنامه‌ای دارد و Neon Katana هنوز ندارد اما زیرساختش آماده است. هدفم روشن است: درآمدم از بازی‌ها، ابزارها و سایت‌های خودم باشد و هر کدام روی پای خودش بایستد.',
-      'در کنار آن دنبال کار بین‌المللی هستم و همکاری با استودیوهای بزرگ بازی‌سازی. نه به این دلیل که این‌ها را کافی نمی‌دانم، بلکه چون می‌دانم مقیاسی هست که تنها به آن نمی‌رسم: تیمی که کدم را ریویو کند، پروژه‌ای بزرگ‌تر از یک نفر، و روشی از کار کردن که فقط با انجام دادنش یاد گرفته می‌شود. آن تجربه را ندارم و همین اول می‌گویمش.'
+      'تا اینجا پروژه‌ها را از صفر تا صد خودم برده‌ام: تعریف کار، تخمین، اولویت‌بندی، انتشار، و نگهداری بعد از آن. چیزی که از این مسیر به دست آمده دیدِ کامل به چرخه‌ی محصول است — و همین دید است که کار کردن در تیم را برایم ساده‌تر می‌کند، نه سخت‌تر، چون می‌دانم تصمیم هر نفر کجای زنجیره ظاهر می‌شود.',
+      'این‌ها را محصول می‌بینم، نه نمونه‌کار: بعضی تجاری‌اند، بعضی متن‌باز و برای جامعه‌ی یونیتی، و یکی سرویس زنده‌ای که باید بالا بماند. هدفم این است که این مجموعه رشد کند و هر کدام روی پای خودش بایستد.',
+      'در کنار آن دنبال کار بین‌المللی و همکاری با استودیوهای بزرگ هستم. دقیقاً همان چیزی را می‌خواهم که تنها به آن نمی‌رسم: کدی که ریویو شود، کسی که سرش با من بحث کند و چیزی یادم بدهد، و مقیاسی که فقط با انجام دادن یاد گرفته می‌شود. این تجربه را ندارم و همین اول می‌گویمش — آماده‌ی یاد گرفتنش هستم، چه به‌عنوان عضو تیم و چه در نقشی که هماهنگی و برنامه‌ریزی هم بخشی از آن باشد.'
     ],
 
     // The skill rows. Written in Persian, not transliterated from
@@ -303,13 +316,19 @@ const I18N = {
 
     courseHead: 'پیش از این‌ها',
     courseSub: 'آکادمی یاسان',
+
+    // Why a list of beginner courses belongs on the resume of
+    // somebody who writes IL2CPP-safe C#. Without this line the
+    // section reads as a step backwards; with it, it reads as the
+    // deliberate choice it was.
+    courseNote: 'چند سال پیش از اولین دوره‌ی اسکرچ، با C# کار می‌کردم. این دوره‌ها را برای یاد گرفتن ابزارشان نگرفتم — برای کار کردن در یک محیط ساختاریافته، تمرین حل مسئله‌ی گروهی، و تجربه‌ی آموزش‌پذیری گرفتم؛ چیزهایی که تنها پشت یک ادیتور به دست نمی‌آیند.',
     crScratch: 'چهار ترم اسکرچ',
     crPython: 'دو ترم پایتون',
     crAppInventor: 'دو ترم اپ اینونتور',
     crWeb: 'یک ترم طراحی وب',
 
-    contactHead: 'تماس',
-    contactLede: 'کوتاه بنویس، جواب می‌دهم.',
+    contactHead: 'در تماس باشیم',
+    contactLede: 'از صحبت درباره‌ی فرصت‌های همکاری، چالش‌های فنی یونیتی، یا حتی یک سؤال ساده استقبال می‌کنم. هر پیامی را خودم می‌خوانم و خودم جواب می‌دهم.',
     lContact: 'فرم تماس',
     lGithub: 'گیت‌هاب',
     lInstagram: 'اینستاگرام',
@@ -322,12 +341,12 @@ const I18N = {
   en: {
     locale: 'en-US',
     metaTitle: 'Resume — AmirCollider',
-    metaDesc: 'Game programmer, Unity and C#. Two published games, two Unity editor extensions, and the whole service behind them on Cloudflare Workers — all written by me, all inspectable.',
+    metaDesc: 'Game programmer working in Unity and C#. Three layers — gameplay, editor tooling, and the service behind both — and every project here opens from this site and can be checked.',
     crumb: 'Resume',
 
     role: 'Game programmer · Unity and C#',
     h1: 'What I have built',
-    tagline: 'I make games, I write the tools that make them faster to build, and the service behind both is mine too.',
+    tagline: 'From gameplay to infrastructure: I take a project from idea to the player, and stay with it after release.',
     ctaContact: 'Start a conversation',
     ctaWork: 'See the work',
     ctaPdf: 'Download PDF',
@@ -341,16 +360,16 @@ const I18N = {
     jContact: 'Contact',
     jumpLabel: 'Resume sections',
 
-    sShipped: 'products shipped',
+    sLayers: 'layers: gameplay, tooling, infrastructure',
     sLangs: 'languages, every product',
-    sStack: 'of it written by me',
     sDeps: 'external dependencies, no build step',
+    sOpen: 'open-source library, for the Unity community',
 
     summaryHead: 'The short version',
     summary: [
-      'My work has three layers and I write all of them: the game, the tooling that makes building it faster, and the service both stand on. None of it is portfolio filler — it is published, people use it, and one of it sells.',
+      'My work spans three layers: the game itself, the tooling that makes building it faster, and the service both stand on. Working across all three means that when something breaks I know which layer to look in, and when a decision gets made I know where its cost will show up later.',
       'Inside Unity I build systems: the things that have to keep holding when a player does something nobody planned for. Cloud saves, leaderboards, in-app stores and the economies behind them, endless stage generation, and Android builds that behave the same on somebody else\'s phone as on mine.',
-      'Outside Unity I write editor extensions and I support what I sell: key issuing, device activation, payments, delivery. When somebody\'s licence fails at midnight, the only person who can fix it is me — which says more about how I work than any adjective would.'
+      'Outside Unity I write editor extensions and the infrastructure behind them: key issuing, device activation, payments, delivery. The way I work is iterative — ship something stable early, improve it on real feedback and real data, and keep the running systems maintained rather than only touching them once they break.'
     ],
 
     kgame: 'game',
@@ -375,7 +394,7 @@ const I18N = {
     bPanels: 'operator panels',
     bMailbox: 'mailbox',
     workHead: 'The work',
-    workLede: 'All four are published, and all four open from this site.',
+    workLede: 'A game, a tool, and the service behind them — each one published, and each one opens from this site.',
 
     skillsHead: 'Skills',
     skillsLede: 'Levels come from what the work actually demanded, not from how long the tool has been open. The last column names where each was used — anything without a project behind it is not in the table at all.',
@@ -387,9 +406,9 @@ const I18N = {
     lvl3: 'Proficient',
     lvl2: 'Working',
 
-    evGames: 'both games',
-    evAll: 'all four products',
-    evStores: 'both game stores',
+    evGames: 'the games',
+    evAll: 'every project here',
+    evStores: 'the in-game stores',
     evChrono: 'Chrono Blades',
     evAndroid: 'the Android builds',
     evDocSnap: 'Unity DocSnap',
@@ -399,7 +418,7 @@ const I18N = {
     evOauth: 'Google sign-in',
     evCheckout: 'the DocSnap checkout',
     evLicense: 'DocSnap licensing',
-    evDb: 'three D1 databases',
+    evDb: 'the D1 databases',
     evSite: 'this site',
     evI18n: 'the whole site, three languages',
     evSeo: 'sitemap and structured data',
@@ -407,9 +426,9 @@ const I18N = {
 
     focusHead: 'Where I am going',
     focus: [
-      'I work alone, and so far that has been a choice rather than a constraint. I scope the work, build it, ship it, and then keep it running — the support mail reaches me. I would rather put something that works in front of people and improve it than argue about the best way to start.',
-      'I treat these as products, not portfolio pieces. Unity DocSnap sells today, Chrono Blades carries in-app purchases, and Neon Katana does not yet — the plumbing is there for when it does. The goal is plain: I want my games, my tools and my sites to be my income, each of them standing on its own.',
-      'Alongside that I am looking for international work, and for the chance to work with large game studios. Not because I think what I have built is small, but because I know there is a scale I cannot reach alone: a team that reviews my code, a project bigger than one person, and a way of working that is only learned by doing it. I have not had that yet, and I would rather say so in the first line than bury it in phrasing.'
+      'So far I have taken projects end to end myself: scoping, estimating, prioritising, shipping, and maintaining them afterwards. What that gave me is a full view of the product cycle — and that view is what makes working in a team easier for me rather than harder, because I know where a decision by one person shows up further down the chain.',
+      'I treat these as products rather than portfolio pieces: some commercial, some open source for the Unity community, and one a live service that has to stay up. The goal is for that set to grow and for each part of it to stand on its own.',
+      'Alongside that I am looking for international work and for the chance to work with large studios. What I want is exactly what I cannot get alone: code that gets reviewed, someone who argues with me and teaches me something, and a scale that is only learned by doing it. I have not had that yet and I would rather say so in the first line — I am ready to learn it, whether as part of a team or in a role where coordination and planning are part of the job.'
     ],
 
     skCsharp: 'C# gameplay systems',
@@ -450,13 +469,14 @@ const I18N = {
 
     courseHead: 'Before that',
     courseSub: 'Yasan Academy',
+    courseNote: 'I had been writing C# for several years before the first Scratch course. I did not take these to learn the tools — I took them for the experience of working inside a structured environment, solving problems alongside other people, and being taught; none of which is learned alone behind an editor.',
     crScratch: 'Four terms of Scratch',
     crPython: 'Two terms of Python',
     crAppInventor: 'Two terms of App Inventor',
     crWeb: 'One term of web design',
 
     contactHead: 'Get in touch',
-    contactLede: 'Keep it short — I answer.',
+    contactLede: 'I am glad to talk about working together, a Unity problem you are stuck on, or a plain question. I read every message myself and I answer it.',
     lContact: 'Contact form',
     lGithub: 'GitHub',
     lInstagram: 'Instagram',
@@ -469,12 +489,12 @@ const I18N = {
   ja: {
     locale: 'ja-JP',
     metaTitle: '経歴 — AmirCollider',
-    metaDesc: 'ゲームプログラマー。Unity と C#。公開済みのゲーム 2 本、Unity エディタ拡張 2 つ、そしてそれらを支えるサービス一式を Cloudflare Workers 上に自作。すべて確認できます。',
+    metaDesc: 'Unity と C# のゲームプログラマー。ゲームプレイ、エディタ拡張、そして両方を支えるサービスという 3 つの層で開発しており、いずれの制作物もこのサイトからご確認いただけます。',
     crumb: '経歴',
 
     role: 'ゲームプログラマー · Unity / C#',
     h1: 'これまで作ったもの',
-    tagline: 'ゲームを作り、それを速く作るための道具を書き、両方を支えるサービスの運用も自分で行っております。',
+    tagline: 'ゲームプレイから基盤まで。企画から公開まで一貫して担当し、リリース後も継続して支えています。',
     ctaContact: 'ご相談はこちら',
     ctaWork: '制作物を見る',
     ctaPdf: 'PDF で保存',
@@ -488,16 +508,16 @@ const I18N = {
     jContact: 'ご連絡',
     jumpLabel: '経歴のセクション',
 
-    sShipped: '本の公開済み製品',
+    sLayers: 'つの層: ゲームプレイ・ツール・基盤',
     sLangs: '言語対応、全製品',
-    sStack: '自分で書いたコード',
     sDeps: '外部依存、ビルド工程なし',
+    sOpen: 'オープンソースライブラリを公開',
 
     summaryHead: '概要',
     summary: [
-      '仕事は 3 つの層に分かれていて、そのすべてを自分で書いています。ゲーム本体、それを速く作るための道具、そして両方が乗るサービスです。いずれも練習のための習作ではなく、実際に公開して使っていただいているもので、そのうち 1 つは販売しております。',
+      '仕事は 3 つの層にまたがっています。ゲーム本体、それを速く作るための道具、そして両方を支えるサービスです。3 つすべてに関わっていると、不具合が起きたときにどの層を見ればよいか判断でき、ある決定が後でどこにコストとして現れるかも見通せます。',
       'Unity の中での仕事はシステム作りです。誰も想定しなかった操作をプレイヤーがしたときにも壊れないもの。クラウドセーブ、ランキング、アプリ内ストアとその経済設計、終わりのないステージ生成、そして自分の環境と同じように他人の端末でも動く Android ビルドです。',
-      'Unity の外ではエディタ拡張を書き、売ったものを自分で支えています。キーの発行、端末の有効化、決済、配信。深夜に誰かのライセンスが通らなければ、直せるのは自分だけです。自分の仕事の仕方は、どんな言葉を並べるよりも、この一点に表れているように思います。'
+      'Unity の外では、エディタ拡張とその裏側の仕組みを書いています。キーの発行、端末の有効化、決済、配信です。進め方は反復型で、まず安定して動くものを早めに出し、実際のご意見とデータをもとに改善し、壊れてから直すのではなく、稼働中のシステムを継続的に保守するようにしています。'
     ],
 
     kgame: 'ゲーム',
@@ -522,7 +542,7 @@ const I18N = {
     bPanels: '運用パネル',
     bMailbox: 'メールボックス',
     workHead: '制作物',
-    workLede: '4 つとも公開しており、このサイトからご覧いただけます。',
+    workLede: 'ゲーム、ツール、そしてそれらを支えるサービス。いずれも公開しており、このサイトからご覧いただけます。',
 
     skillsHead: 'スキル',
     skillsLede: 'レベルは触れてきた期間ではなく、実際に必要とされた作業をもとに、自分なりに判断したものです。右端の列は使用箇所です。裏付けとなる制作物がないものは、表に入れておりません。',
@@ -534,9 +554,9 @@ const I18N = {
     lvl3: '実務レベル',
     lvl2: '業務経験あり',
 
-    evGames: 'ゲーム 2 本',
-    evAll: '全 4 製品',
-    evStores: '両ゲームのストア',
+    evGames: 'ゲーム作品',
+    evAll: 'すべての制作物',
+    evStores: 'ゲーム内ストア',
     evChrono: 'Chrono Blades',
     evAndroid: 'Android ビルド',
     evDocSnap: 'Unity DocSnap',
@@ -546,7 +566,7 @@ const I18N = {
     evOauth: 'Google サインイン',
     evCheckout: 'DocSnap の決済',
     evLicense: 'DocSnap のライセンス',
-    evDb: '3 つの D1 データベース',
+    evDb: 'D1 データベース',
     evSite: 'このサイト',
     evI18n: 'サイト全体の 3 言語対応',
     evSeo: 'sitemap と構造化データ',
@@ -554,9 +574,9 @@ const I18N = {
 
     focusHead: 'これから',
     focus: [
-      'これまでは一人で進めてきました。企画から実装、公開、そして公開後の保守まで自分で担当しており、サポートのメールも自分に届きます。最初から完璧な形を議論するより、動くものを世に出してから直していく進め方をしてきました。',
-      '作ったものは作品というより製品だと考えています。Unity DocSnap は現在販売しており、Chrono Blades にはアプリ内課金があります。Neon Katana にはまだありませんが、仕組みだけは用意してあります。自分のゲーム・ツール・サイトが、それぞれ自分の力で収益を生む状態にしていきたいと考えています。',
-      'あわせて、海外での仕事や、大きなゲームスタジオの方々とご一緒する機会を探しています。今あるものを小さいと思っているからではなく、一人では届かない規模があると分かっているからです。コードをレビューしていただける環境、一人では抱えきれない大きさの案件、そして実際にやってみなければ身につかない働き方。その経験はまだありませんので、隠さず最初に書いておきます。至らない点も多いと思いますが、学ぶ姿勢だけは持ち続けたいと考えています。'
+      'これまでは、企画・見積もり・優先順位づけ・公開、そしてその後の保守まで、一通り自分で担当してきました。そこで得られたのは製品サイクル全体を見渡す視点です。この視点があるからこそ、チームでの仕事はやりにくくなるどころか、むしろ進めやすいと感じています。誰かの判断が後の工程のどこに現れるかが分かるためです。',
+      '作ったものは作品というより製品だと考えています。商用のもの、Unity コミュニティ向けのオープンソースのもの、そして止められない稼働中のサービス。この全体を育てて、それぞれが自力で成り立つ状態にしていきたいと考えています。',
+      'あわせて、海外での仕事や、大きなスタジオの方々とご一緒する機会を探しています。求めているのは、一人では得られないものです。レビューしていただけるコード、議論して何かを教えてくださる方、そして実際にやってみなければ身につかない規模感。その経験はまだありませんので、隠さず最初に書いておきます。チームの一員としても、調整や計画を担う立場でも、学ぶ姿勢を持って取り組みたいと考えております。'
     ],
 
     skCsharp: 'C# によるゲームプレイ実装',
@@ -597,13 +617,14 @@ const I18N = {
 
     courseHead: 'それ以前',
     courseSub: 'Yasan Academy',
+    courseNote: 'Scratch の講座を受ける数年前から、C# を書いていました。これらの講座は道具を学ぶために受けたのではありません。決まった枠組みの中で人と進めること、他の方と一緒に課題を解くこと、そして教わる側に立つことを経験するためでした。いずれも、一人でエディタに向かっているだけでは身につかないものだと考えたからです。',
     crScratch: 'Scratch 4 学期',
     crPython: 'Python 2 学期',
     crAppInventor: 'App Inventor 2 学期',
     crWeb: 'Web デザイン 1 学期',
 
     contactHead: 'ご連絡',
-    contactLede: '短いご連絡でも構いません。いただいたお便りには、できるだけ早くお返事いたします。',
+    contactLede: 'ご一緒できる機会のご相談、Unity で行き詰まっている技術的な課題、ちょっとしたご質問など、いずれも歓迎いたします。いただいたメッセージはすべて自分で読み、お返事いたします。',
     lContact: 'お問い合わせフォーム',
     lGithub: 'GitHub',
     lInstagram: 'Instagram',
@@ -910,6 +931,7 @@ function renderPage(lang, theme, games) {
         <p class="rs-sub">${escapeHtml(t.courseHead)}
           <small>${escapeHtml(t.courseSub)}</small></p>
         <ul class="rs-courses">${courses}</ul>
+        <p class="rs-note">${escapeHtml(t.courseNote)}</p>
       </section>
 
       <section class="rs-sec rs-end rs-reveal" id="contact">
@@ -1471,6 +1493,15 @@ function css() {
     .rs-sub {
       text-align: center; font-size: 0.95em; font-weight: 800;
       margin-block: 30px 12px;
+    }
+
+    /* The note under the early courses. Quiet, because it is an
+       explanation rather than a claim - but present, because a
+       list of beginner courses on this page is a question the
+       reader will otherwise answer for themselves, and wrongly. */
+    .rs-note {
+      max-width: 44em; margin: 16px auto 0; text-align: center;
+      font-size: 0.85em; line-height: 1.95; color: var(--text-dim);
     }
     .rs-sub small { font-weight: 600; font-size: 0.82em; color: var(--text-dim); }
     .rs-courses {
