@@ -142,6 +142,8 @@ const I18N = {
 
     ctaFree: 'رایگان شروع کن',
     ctaPrices: 'قیمت‌ها را ببین',
+    ctaDemo: 'یک خروجی واقعی را ببین',
+    demoNote: 'یک پروژه‌ی نمونه که با همین ابزار مستند شده — بدون نصب چیزی، همین‌جا بازش کن.',
     priceNote: 'خرید یک‌باره · یک سیستم · بدون اشتراک ماهانه',
 
     sectionWhat: 'چه‌کار می‌کند',
@@ -265,6 +267,8 @@ const I18N = {
 
     ctaFree: 'Start free',
     ctaPrices: 'See pricing',
+    ctaDemo: 'Open a real export',
+    demoNote: 'A sample project documented by this tool. Nothing to install — open it and click around.',
     priceNote: 'One-off purchase · one machine · no subscription',
 
     sectionWhat: 'What it does',
@@ -388,6 +392,8 @@ const I18N = {
 
     ctaFree: '無料ではじめる',
     ctaPrices: '価格を見る',
+    ctaDemo: '実際の出力を見る',
+    demoNote: 'このツールで実際に書き出したサンプルプロジェクトです。インストール不要、そのまま開いてご覧いただけます。',
     priceNote: '買い切り · 1 台まで · サブスクリプションなし',
 
     sectionWhat: 'できること',
@@ -730,7 +736,8 @@ function boba(size, alt) {
 const ICONS = {
   contrast: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor" stroke="none"/>',
   download: '<path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/>',
-  tag: '<path d="M3 11V5a2 2 0 0 1 2-2h6l10 10-8 8z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/>'
+  tag: '<path d="M3 11V5a2 2 0 0 1 2-2h6l10 10-8 8z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/>',
+  eye: '<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
 }
 
 function icon(name) {
@@ -786,6 +793,25 @@ function renderTopbar(lang) {
 // pricing", not "buy".
 // ==========================================
 function renderHero(p) {
+  // The third button, when there is something for it to open.
+  //
+  // Everything else on this page is a claim about what the output
+  // looks like; a link to the output itself is the claim and the
+  // evidence in one click, and it is the only thing here that
+  // costs a stranger nothing to check. It is rendered only when
+  // CONFIG.DOCSNAP.DEMO_URL points at an export that has actually
+  // been uploaded - a demo button that 404s costs more trust than
+  // a missing one ever loses.
+  const demo = CONFIG.DOCSNAP.DEMO_URL
+    ? `
+        <a class="btn ghost" href="${escapeHtml(CONFIG.DOCSNAP.DEMO_URL)}">${icon('eye')}<span>${escapeHtml(p.ctaDemo)}</span></a>`
+    : ''
+
+  const demoNote = CONFIG.DOCSNAP.DEMO_URL
+    ? `
+      <p class="fine">${escapeHtml(p.demoNote)}</p>`
+    : ''
+
   return `
     <header class="hero">
       ${boba(132, p.mascotAlt)}
@@ -794,9 +820,9 @@ function renderHero(p) {
       <p class="lede">${escapeHtml(p.lede)}</p>
       <div class="cta">
         <a class="btn" href="${escapeHtml(REPO_URL)}" rel="noopener">${icon('download')}<span>${escapeHtml(p.ctaFree)}</span></a>
-        <a class="btn ghost" href="#pricing">${icon('tag')}<span>${escapeHtml(p.ctaPrices)}</span></a>
+        <a class="btn ghost" href="#pricing">${icon('tag')}<span>${escapeHtml(p.ctaPrices)}</span></a>${demo}
       </div>
-      <p class="fine">${escapeHtml(p.priceNote)}</p>
+      <p class="fine">${escapeHtml(p.priceNote)}</p>${demoNote}
     </header>`
 }
 

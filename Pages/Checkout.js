@@ -75,6 +75,24 @@ const I18N = {
     tokenTitle: 'کدام شبکه؟',
     tokenBody: 'حواست باشد تتر (USDT) روی چند شبکه وجود دارد — TRC20، ERC20، BEP20. در صفحه‌ی پرداخت هر کدام را انتخاب کنی، آدرس همان شبکه به تو داده می‌شود. فقط از همان شبکه بفرست.',
 
+    // The card-first wording. Same invoice, same delivery - a
+    // different first sentence, chosen by COMMERCE.FIAT_ONRAMP.
+    headingCard: 'خرید Unity DocSnap',
+    subCard: 'با کارت بانکی پرداخت کن — ویزا، مسترکارت، Apple Pay یا Google Pay — یا اگر ترجیح می‌دهی با ارز دیجیتال. کلید لایسنس خودکار به ایمیلت می‌آید.',
+    payCtaCard: 'ادامه‌ی پرداخت',
+    stepsCard: [
+      'ایمیلت را وارد می‌کنی و دکمه را می‌زنی.',
+      'در صفحه‌ی پرداخت، کارت را انتخاب می‌کنی — یا اگر ارز دیجیتال را ترجیح می‌دهی، ارزت را.',
+      'مبلغ را پرداخت می‌کنی. پرداخت کارتی بار اول یک احراز هویت یک‌باره می‌خواهد؛ بعد از آن فقط فرم کارت است.',
+      `کلید لایسنس خودکار ساخته و به ایمیلت ارسال می‌شود (معمولاً کمتر از ${PROMISE_MINUTES} دقیقه).`
+    ],
+    kycTitle: 'درباره‌ی آن احراز هویت',
+    kycBody: 'پرداخت کارتی را یک شریک پرداخت دارای مجوز انجام می‌دهد و بار اول عکس مدرک شناسایی و یک سلفی می‌خواهد — همان کاری که هر صرافی یا بانکی می‌کند. فقط یک بار، آن هم سمت خودشان؛ هیچ‌چیزی از آن به ما نمی‌رسد و ما فقط می‌بینیم که صورتحساب پرداخت شده است. پرداخت با ارز دیجیتال اصلاً این مرحله را ندارد.',
+
+    altTitle: 'هیچ‌کدام از این‌ها برایت جواب نمی‌دهد؟',
+    altBody: 'برایمان بنویس و بگو کدام نسخه را می‌خواهی؛ راهی پیدا می‌کنیم. این مسیر خودکار نیست، پس یک روز به آن وقت بده — اما هیچ‌کس نباید به‌خاطر یک فرم پرداخت از ابزار جا بماند.',
+    altCta: 'برایمان بنویس',
+
     errEmail: 'یک آدرس ایمیل معتبر بنویس.',
     errMismatch: 'دو ایمیل یکی نیستند.',
     errTier: 'نسخه را انتخاب کن.',
@@ -155,6 +173,24 @@ const I18N = {
     tokenTitle: 'Which network?',
     tokenBody: 'USDT exists on several networks — TRC20, ERC20, BEP20. Whichever you choose on the payment page, the address you are given belongs to that network. Send only from the same one.',
 
+    // The card-first wording. Same invoice, same delivery - a
+    // different first sentence, chosen by COMMERCE.FIAT_ONRAMP.
+    headingCard: 'Buy Unity DocSnap',
+    subCard: 'Pay by card — Visa, Mastercard, Apple Pay or Google Pay — or in crypto if you would rather. Your licence key is generated and emailed automatically.',
+    payCtaCard: 'Continue to payment',
+    stepsCard: [
+      'Enter your email and press the button.',
+      'On the payment page, choose card — or pick a coin if you would rather pay in crypto.',
+      'Pay the amount shown. A card payment asks for a one-time identity check the first time; after that it is a card form like any other.',
+      `Your key is generated and emailed automatically, usually in well under ${PROMISE_MINUTES} minutes.`
+    ],
+    kycTitle: 'About that identity check',
+    kycBody: 'Card payments are handled by a licensed payment partner, and the first one asks for a photo of your ID and a selfie — the same check an exchange or a bank does. It happens once, on their side, and none of it reaches us: all we are ever told is that the invoice was paid. Paying in crypto skips it entirely.',
+
+    altTitle: 'Neither of these works for you?',
+    altBody: 'Write to us and say which edition you want, and we will find a way. Nothing about that route is automatic, so give it a day — but nobody should miss out on the tool because of a payment form.',
+    altCta: 'Write to us',
+
     errEmail: 'Please enter a valid email address.',
     errMismatch: 'The two addresses do not match.',
     errTier: 'Please choose an edition.',
@@ -233,6 +269,24 @@ const I18N = {
 
     tokenTitle: 'ネットワークにご注意',
     tokenBody: 'USDT には TRC20・ERC20・BEP20 など複数のネットワークがあります。決済ページで選んだネットワークのアドレスが表示されますので、必ず同じネットワークから送金してください。',
+
+    // The card-first wording. Same invoice, same delivery - a
+    // different first sentence, chosen by COMMERCE.FIAT_ONRAMP.
+    headingCard: 'Unity DocSnap を購入',
+    subCard: 'クレジットカード(Visa・Mastercard・Apple Pay・Google Pay)でお支払いいただけます。暗号資産でのお支払いも可能です。ライセンスキーは自動で発行され、メールで届きます。',
+    payCtaCard: 'お支払いに進む',
+    stepsCard: [
+      'メールアドレスを入力し、ボタンを押します。',
+      '決済ページでカードをお選びください。暗号資産をご希望の場合は通貨をお選びいただけます。',
+      '表示された金額をお支払いください。カード決済は初回のみ本人確認があり、二回目以降はカード情報の入力だけです。',
+      `ライセンスキーが自動で発行され、メールで届きます(通常 ${PROMISE_MINUTES} 分以内)。`
+    ],
+    kycTitle: '本人確認について',
+    kycBody: 'カード決済は認可を受けた決済パートナーが処理し、初回のみ身分証の写真と自撮り写真の提出をお願いしています。取引所や銀行と同じ手続きで、一度だけ、先方で完結します。その内容が当方に渡ることはなく、当方が知るのは請求書が支払われたという事実だけです。暗号資産でのお支払いに、この手続きはありません。',
+
+    altTitle: 'どちらの方法もご利用になれない場合',
+    altBody: 'ご希望のエディションを添えてご連絡ください。方法をお探しします。この経路は自動ではないため一日ほどお時間をいただきますが、支払い方法のせいでお使いいただけない、ということにはしません。',
+    altCta: 'ご連絡ください',
 
     errEmail: '有効なメールアドレスをご入力ください。',
     errMismatch: '2 つのアドレスが一致しません。',
@@ -739,6 +793,21 @@ function topbar(lang) {
 function renderCheckoutPage(lang, theme, tier, ready) {
   const p = I18N[lang]
 
+  // Which story this page tells about paying.
+  //
+  // The invoice is the same either way - the provider decides
+  // whether a card step appears in front of it, and this Worker
+  // cannot see that decision from anything in the API. So the
+  // wording is driven by the flag in Config.js and nothing else,
+  // and it defaults to the crypto wording, because overpromising
+  // here sends somebody all the way to a payment screen to find
+  // out they cannot use it. See COMMERCE.FIAT_ONRAMP.
+  const onRamp = CONFIG.COMMERCE.FIAT_ONRAMP === true
+  const heading = onRamp ? p.headingCard : p.heading
+  const sub = onRamp ? p.subCard : p.sub
+  const payLabel = onRamp ? p.payCtaCard : p.payCta
+  const stepText = onRamp ? p.stepsCard : p.steps
+
   const cards = tierList().map(item => `
     <label class="tier ${item.id === tier ? 'is-on' : ''}" data-tier="${item.id}">
       <input type="radio" name="tier" value="${item.id}" ${item.id === tier ? 'checked' : ''}>
@@ -747,13 +816,43 @@ function renderCheckoutPage(lang, theme, tier, ready) {
       <span class="tier-note">${escapeHtml(p.oneOff)}</span>
     </label>`).join('')
 
-  const steps = p.steps.map((step, index) => `
+  const steps = stepText.map((step, index) => `
     <li><span class="n">${index + 1}</span><span>${escapeHtml(step)}</span></li>`).join('')
+
+  // The identity check is worth its own block, and only when the
+  // card route is the one being offered. Somebody who has been
+  // asked for a selfie by a payment page they reached from here
+  // and was told nothing about it beforehand closes the tab - so
+  // it is said here, in advance, along with the fact that it does
+  // not reach this site and that crypto skips it.
+  const kycCard = onRamp
+    ? `
+    <section class="card">
+      <h2 class="lbl">${escapeHtml(p.kycTitle)}</h2>
+      <p class="muted">${escapeHtml(p.kycBody)}</p>
+    </section>`
+    : ''
+
+  // The escape hatch. A checkout cannot tell somebody who decided
+  // not to buy apart from somebody who could not find a way to,
+  // and only the second group is worth a link. The topic and
+  // subject ride in the query string so the message arrives in the
+  // mailbox already filed and already saying which edition.
+  const altTier = CONFIG.DOCSNAP.TIERS[tier]
+  const altSubject = ('Unity DocSnap ' + (altTier ? altTier.name : '')).trim()
+  const altCard = CONFIG.COMMERCE.ALT_PAY === true
+    ? `
+    <section class="card">
+      <h2 class="lbl">${escapeHtml(p.altTitle)}</h2>
+      <p class="muted">${escapeHtml(p.altBody)}</p>
+      <a class="btn ghost" href="/contact?lang=${lang}&topic=order&subject=${encodeURIComponent(altSubject)}">${escapeHtml(p.altCta)}</a>
+    </section>`
+    : ''
 
   const body = `
     <header class="head">
-      <h1>${escapeHtml(p.heading)}</h1>
-      <p class="sub">${escapeHtml(p.sub)}</p>
+      <h1>${escapeHtml(heading)}</h1>
+      <p class="sub">${escapeHtml(sub)}</p>
     </header>
 
     ${ready ? '' : `<div class="note bad">${escapeHtml(p.errOff)}</div>`}
@@ -773,7 +872,7 @@ function renderCheckoutPage(lang, theme, tier, ready) {
       <p id="email2Hint" class="hint">${escapeHtml(p.confirmHint)}</p>
 
       <button id="pay" type="button" class="btn wide" ${ready ? '' : 'disabled'}>
-        ${escapeHtml(p.payCta)}
+        ${escapeHtml(payLabel)}
       </button>
       <div id="out" class="out" role="status" aria-live="polite"></div>
     </section>
@@ -782,6 +881,8 @@ function renderCheckoutPage(lang, theme, tier, ready) {
       <h2 class="lbl">${escapeHtml(p.stepsTitle)}</h2>
       <ol class="steps">${steps}</ol>
     </section>
+    ${kycCard}
+    ${altCard}
 
     <section class="card warn-card">
       <h2 class="lbl">${escapeHtml(p.tokenTitle)}</h2>

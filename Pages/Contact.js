@@ -609,8 +609,26 @@ export async function handleContact(url, request, gameId, requestId, GAMES, env)
   const theme = resolveRequestTheme(cookies)
   const token = await makeToken(env)
 
+  // Two fields may be filled in from the query string, so that a
+  // page which already knows what the message is about can send
+  // somebody here without making them retype it. The checkout's
+  // "neither of these works for you" link is the reason this
+  // exists: that message arrives filed under the right topic and
+  // already naming the edition, rather than as a general enquiry
+  // saying "hi, about buying".
+  //
+  // Both are treated as what they are - text a link supplied, not
+  // text this site chose. The topic is only honoured when it is
+  // one of the known keys, so the value that reaches the radio is
+  // always from TOPICS. The subject is capped at the same length
+  // the form itself enforces and escaped like any other operator
+  // input on its way into an attribute.
+  const wanted = url.searchParams.get('topic')
+  const topic = TOPICS.includes(wanted) ? wanted : TOPICS[0]
+  const subject = (url.searchParams.get('subject') || '').slice(0, CONFIG.CONTACT.MAX_SUBJECT)
+
   return createHtmlResponse(
-    renderPage(lang, theme, token),
+    renderPage(lang, theme, token, topic, subject),
     200,
     langCookieHeader(url, lang)
   )
@@ -796,7 +814,7 @@ function css() {
 // ==========================================
 // renderPage
 // ==========================================
-function renderPage(lang, theme, token) {
+function renderPage(lang, theme, token, topic, subject) {
   const t = I18N[lang] || I18N.fa
   const nav = NAV_I18N[lang] || NAV_I18N.fa
   const dir = dirFor(lang)
@@ -807,9 +825,10 @@ function renderPage(lang, theme, token) {
     { href: PAGE_PATH, label: t.crumb }
   ]
 
-  const topics = TOPICS.map((key, index) => `
+  const chosen = TOPICS.includes(topic) ? topic : TOPICS[0]
+  const topics = TOPICS.map(key => `
         <label>
-          <input type="radio" name="topic" value="${key}"${index === 0 ? ' checked' : ''}>
+          <input type="radio" name="topic" value="${key}"${key === chosen ? ' checked' : ''}>
           <span>${escapeHtml(t[TOPIC_LABEL[key]])}</span>
         </label>`).join('')
 
@@ -886,6 +905,7 @@ function renderPage(lang, theme, token) {
           <label class="ct-field">
             <span>${escapeHtml(t.subject)}</span>
             <input type="text" name="subject" required maxlength="${CONFIG.CONTACT.MAX_SUBJECT}"
+                   value="${escapeHtml(subject || '')}"
                    placeholder="${escapeHtml(t.subjectPh)}">
           </label>
 
